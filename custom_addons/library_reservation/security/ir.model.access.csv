@@ -1,0 +1,4 @@
+id,name,model_id/id,group_id/id,perm_read,perm_write,perm_create,perm_unlink
+access_library_reservation_user,library.reservation.user,model_library_reservation,library_base.library_group_circulation,1,1,1,0
+access_library_reservation_branch_manager,library.reservation.branch.manager,model_library_reservation,library_base.library_group_branch_manager,1,1,1,0
+access_library_reservation_library_manager,library.reservation.library.manager,model_library_reservation,library_base.library_group_library_manager,1,1,1,1
