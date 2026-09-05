@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="library_subject_view_list" model="ir.ui.view">
+        <field name="name">library.subject.list</field>
+        <field name="model">library.subject</field>
+        <field name="arch" type="xml">
+            <list string="Subjects" multi_edit="1">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="book_count" string="Books"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="library_subject_view_form" model="ir.ui.view">
+        <field name="name">library.subject.form</field>
+        <field name="model">library.subject</field>
+        <field name="arch" type="xml">
+            <form string="Subject">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_books" type="object" class="oe_stat_button" icon="fa-book">
+                            <field name="book_count" widget="statinfo" string="Books"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Computer Science"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="code" placeholder="e.g. CS"/>
+                            <field name="parent_ids" widget="many2many_tags" options="{'no_create': True}"/>
+                        </group>
+                    </group>
+                    <group string="Description">
+                        <field name="description" placeholder="Subject description..."/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="library_subject_view_search" model="ir.ui.view">
+        <field name="name">library.subject.search</field>
+        <field name="model">library.subject</field>
+        <field name="arch" type="xml">
+            <search string="Subjects">
+                <field name="name"/>
+                <field name="code"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="library_subject_action" model="ir.actions.act_window">
+        <field name="name">Subjects</field>
+        <field name="res_model">library.subject</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create a subject</p>
+        </field>
+    </record>
+</odoo>

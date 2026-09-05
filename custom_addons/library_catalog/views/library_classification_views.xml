@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="library_classification_system_view_list" model="ir.ui.view">
+        <field name="name">library.classification.system.list</field>
+        <field name="model">library.classification.system</field>
+        <field name="arch" type="xml">
+            <list string="Classification Systems" multi_edit="1">
+                <field name="name"/>
+                <field name="code"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="library_classification_system_view_form" model="ir.ui.view">
+        <field name="name">library.classification.system.form</field>
+        <field name="model">library.classification.system</field>
+        <field name="arch" type="xml">
+            <form string="Classification System">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Dewey Decimal"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="code" placeholder="e.g. DDC"/>
+                        </group>
+                    </group>
+                    <group string="Description">
+                        <field name="description"/>
+                    </group>
+                    <notebook>
+                        <page string="Classification Codes" name="codes">
+                            <field name="code_ids" context="{'default_system_id': id}">
+                                <list editable="bottom">
+                                    <field name="code" placeholder="e.g. 000"/>
+                                    <field name="name" placeholder="e.g. Computer Science"/>
+                                    <field name="parent_id" domain="[('system_id', '=', parent.id)]"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="library_classification_system_view_search" model="ir.ui.view">
+        <field name="name">library.classification.system.search</field>
+        <field name="model">library.classification.system</field>
+        <field name="arch" type="xml">
+            <search string="Classification Systems">
+                <field name="name"/>
+                <field name="code"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="library_classification_system_action" model="ir.actions.act_window">
+        <field name="name">Classification Systems</field>
+        <field name="res_model">library.classification.system</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create a classification system</p>
+        </field>
+    </record>
+
+    <!-- Classification Code standalone views -->
+    <record id="library_classification_code_view_list" model="ir.ui.view">
+        <field name="name">library.classification.code.list</field>
+        <field name="model">library.classification.code</field>
+        <field name="arch" type="xml">
+            <list string="Classification Codes" multi_edit="1">
+                <field name="code"/>
+                <field name="name"/>
+                <field name="system_id"/>
+                <field name="parent_id"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="library_classification_code_view_search" model="ir.ui.view">
+        <field name="name">library.classification.code.search</field>
+        <field name="model">library.classification.code</field>
+        <field name="arch" type="xml">
+            <search string="Classification Codes">
+                <field name="code"/>
+                <field name="name"/>
+                <field name="system_id"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="library_classification_code_action" model="ir.actions.act_window">
+        <field name="name">Classification Codes</field>
+        <field name="res_model">library.classification.code</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

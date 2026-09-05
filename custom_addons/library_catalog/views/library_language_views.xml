@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="library_language_view_list" model="ir.ui.view">
+        <field name="name">library.language.list</field>
+        <field name="model">library.language</field>
+        <field name="arch" type="xml">
+            <list string="Languages" multi_edit="1">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="active" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="library_language_view_form" model="ir.ui.view">
+        <field name="name">library.language.form</field>
+        <field name="model">library.language</field>
+        <field name="arch" type="xml">
+            <form string="Language">
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. English"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="active" invisible="1"/>
+                            <field name="code" placeholder="e.g. en"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="library_language_view_search" model="ir.ui.view">
+        <field name="name">library.language.search</field>
+        <field name="model">library.language</field>
+        <field name="arch" type="xml">
+            <search string="Languages">
+                <field name="name"/>
+                <field name="code"/>
+                <filter name="active" string="Active" domain="[('active', '=', True)]"/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="library_language_action" model="ir.actions.act_window">
+        <field name="name">Languages</field>
+        <field name="res_model">library.language</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create a language</p>
+        </field>
+    </record>
+</odoo>

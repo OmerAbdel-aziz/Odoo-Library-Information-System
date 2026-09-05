@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="library_book_view_list" model="ir.ui.view">
+        <field name="name">library.book.list</field>
+        <field name="model">library.book</field>
+        <field name="arch" type="xml">
+            <list string="Books" multi_edit="1">
+                <field name="name"/>
+                <field name="isbn_13" optional="show"/>
+                <field name="author_ids" widget="many2many_tags" optional="show"/>
+                <field name="publisher_id" optional="show"/>
+                <field name="book_type"/>
+                <field name="language_id" optional="show"/>
+                <field name="publication_year" optional="hide"/>
+                <field name="copy_count" string="Copies"/>
+                <field name="active" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="library_book_view_form" model="ir.ui.view">
+        <field name="name">library.book.form</field>
+        <field name="model">library.book</field>
+        <field name="arch" type="xml">
+            <form string="Book">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_copies" type="object" class="oe_stat_button" icon="fa-copy">
+                            <field name="copy_count" widget="statinfo" string="Copies"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <field name="cover_image" widget="image" class="oe_avatar"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Clean Code"/></h1>
+                    </div>
+                    <group>
+                        <group string="Book Details">
+                            <field name="active" invisible="1"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="book_type"/>
+                            <field name="subtitle"/>
+                            <field name="edition" placeholder="e.g. 1st Edition"/>
+                            <field name="publication_year" placeholder="e.g. 2024"/>
+                            <field name="page_count"/>
+                            <field name="series_id"/>
+                        </group>
+                        <group string="Identifiers">
+                            <field name="isbn_10" placeholder="e.g. 0132350882"/>
+                            <field name="isbn_13" placeholder="e.g. 9780132350884"/>
+                            <field name="classification_id"/>
+                            <field name="classification_code_id" domain="[('system_id', '=', classification_id)]" invisible="not classification_id"/>
+                            <field name="classification_code" placeholder="e.g. QA76.73"/>
+                        </group>
+                    </group>
+                    <group string="People">
+                        <group>
+                            <field name="author_ids" widget="many2many_tags" options="{'no_create': True}"/>
+                            <field name="publisher_id" options="{'no_create': True}"/>
+                        </group>
+                        <group>
+                            <field name="language_id"/>
+                            <field name="category_ids" widget="many2many_tags" options="{'no_create': True}"/>
+                            <field name="subject_ids" widget="many2many_tags" options="{'no_create': True}"/>
+                        </group>
+                    </group>
+                    <group string="Description">
+                        <field name="description" placeholder="Book description..."/>
+                    </group>
+                    <group string="Integration">
+                        <group>
+                            <field name="product_id"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="library_book_view_search" model="ir.ui.view">
+        <field name="name">library.book.search</field>
+        <field name="model">library.book</field>
+        <field name="arch" type="xml">
+            <search string="Books">
+                <field name="name"/>
+                <field name="isbn_10"/>
+                <field name="isbn_13"/>
+                <field name="author_ids"/>
+                <field name="publisher_id"/>
+                <field name="classification_code"/>
+                <filter name="active" string="Active" domain="[('active', '=', True)]"/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <separator/>
+                <filter string="Book" name="type_book" domain="[('book_type', '=', 'book')]"/>
+                <filter string="Reference" name="type_reference" domain="[('book_type', '=', 'reference_book')]"/>
+                <filter string="Journal" name="type_journal" domain="[('book_type', '=', 'journal')]"/>
+                <filter string="E-Book" name="type_ebook" domain="[('book_type', '=', 'e_book')]"/>
+                <group>
+                    <filter name="group_by_type" string="Type" context="{'group_by': 'book_type'}"/>
+                    <filter name="group_by_language" string="Language" context="{'group_by': 'language_id'}"/>
+                    <filter name="group_by_publisher" string="Publisher" context="{'group_by': 'publisher_id'}"/>
+                    <filter name="group_by_year" string="Year" context="{'group_by': 'publication_year'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="library_book_action" model="ir.actions.act_window">
+        <field name="name">Books</field>
+        <field name="res_model">library.book</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_active': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add a book</p>
+            <p>Register bibliographic records for the library catalog.</p>
+        </field>
+    </record>
+
+    <!-- Menus -->
+    <menuitem id="library_book_menu" name="Books" parent="library_base.library_menu_operations" action="library_book_action" sequence="20" groups="library_base.library_group_user"/>
+
+    <menuitem id="library_catalog_menu" name="Catalog" parent="library_base.library_menu_configuration" sequence="20" groups="library_base.library_group_cataloger"/>
+    <menuitem id="library_author_menu" name="Authors" parent="library_catalog_menu" action="library_author_action" sequence="10"/>
+    <menuitem id="library_publisher_menu" name="Publishers" parent="library_catalog_menu" action="library_publisher_action" sequence="20"/>
+    <menuitem id="library_subject_menu" name="Subjects" parent="library_catalog_menu" action="library_subject_action" sequence="30"/>
+    <menuitem id="library_category_menu" name="Categories" parent="library_catalog_menu" action="library_category_action" sequence="40"/>
+    <menuitem id="library_language_menu" name="Languages" parent="library_catalog_menu" action="library_language_action" sequence="50"/>
+    <menuitem id="library_classification_menu" name="Classifications" parent="library_catalog_menu" action="library_classification_system_action" sequence="60"/>
+    <menuitem id="library_series_menu" name="Series" parent="library_catalog_menu" action="library_series_action" sequence="70"/>
+</odoo>
