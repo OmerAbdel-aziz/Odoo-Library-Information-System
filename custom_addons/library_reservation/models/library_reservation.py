@@ -58,9 +58,26 @@ class LibraryReservation(models.Model):
         required=True,
         index=True,
     )
+    is_ready = fields.Boolean(compute='_compute_is_ready', store=True)
     notes = fields.Text()
     company_id = fields.Many2one(related='preferred_branch_id.company_id', store=True, readonly=True)
     active = fields.Boolean(default=True)
+
+    @api.depends('state', 'expiry_date')
+    def _compute_is_ready(self):
+        now = fields.Date.context_today(self)
+        for res in self:
+            res.is_ready = bool(
+                res.state == 'ready_for_pickup'
+                and res.expiry_date
+                and res.expiry_date >= now
+            )
+
+    @api.constrains('hold_days')
+    def _check_hold_days(self):
+        for res in self:
+            if res.hold_days <= 0:
+                raise ValidationError('Hold days must be greater than zero.')
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -68,28 +85,45 @@ class LibraryReservation(models.Model):
             if not vals.get('name'):
                 vals['name'] = self.env['ir.sequence'].next_by_code('library.reservation')
         reservations = super().create(vals_list)
-        reservations._update_queue_positions()
+        for res in reservations:
+            member = res.member_id
+            if member.status != 'active':
+                raise ValidationError('Only active members can make reservations.')
+            if member.blocked:
+                raise ValidationError('This member is blocked and cannot make reservations.')
+            if self.search_count([
+                ('member_id', '=', member.id),
+                ('book_id', '=', res.book_id.id),
+                ('state', 'in', ('waiting', 'allocated', 'ready_for_pickup')),
+                ('id', '!=', res.id),
+            ]):
+                raise ValidationError('This member already has an open reservation for "%s".' % res.book_id.name)
+        reservations._recompute_queue_for_books()
         return reservations
 
-    def _update_queue_positions(self):
-        for book in self.mapped('book_id'):
-            waiting = self.search([
+    def _recompute_queue_for_books(self):
+        books = self.mapped('book_id')
+        if not books:
+            return
+        sudo_self = self.sudo()
+        for book in books:
+            waiting = sudo_self.search([
                 ('book_id', '=', book.id),
                 ('state', '=', 'waiting'),
             ], order='request_date, priority desc, id')
             for i, res in enumerate(waiting, 1):
                 res.queue_position = i
 
-    def _compute_is_ready(self):
-        now = fields.Date.context_today(self)
-        for res in self:
-            res.is_ready = (
-                res.state == 'ready_for_pickup'
-                and res.expiry_date
-                and res.expiry_date >= now
-            )
+    def _release_copy(self):
+        self.ensure_one()
+        if self.copy_id:
+            self.copy_id.action_available()
+            self.copy_id = False
 
-    is_ready = fields.Boolean(compute='_compute_is_ready')
+    def _leave_queue(self):
+        self.ensure_one()
+        self.queue_position = 0
+        self._recompute_queue_for_books()
 
     def action_allocate(self):
         for res in self:
@@ -109,42 +143,47 @@ class LibraryReservation(models.Model):
             res.ready_date = fields.Date.context_today(self)
             res.expiry_date = fields.Date.context_today(self) + relativedelta(days=res.hold_days)
             res.state = 'allocated'
+            res.queue_position = 0
             res._notify_ready()
+        self._recompute_queue_for_books()
 
     def action_ready_for_pickup(self):
         for res in self:
             if res.state != 'allocated':
                 raise ValidationError('Only allocated reservations can be marked ready.')
+            res.expiry_date = fields.Date.context_today(self) + relativedelta(days=res.hold_days)
             res.state = 'ready_for_pickup'
 
     def action_collect(self):
         for res in self:
             if res.state not in ('allocated', 'ready_for_pickup'):
                 raise ValidationError('Only allocated/ready reservations can be collected.')
-            if res.copy_id:
-                res.copy_id.action_available()
+            res._release_copy()
             res.state = 'collected'
-            res._update_queue_positions()
+            res._leave_queue()
 
     def action_cancel(self):
         for res in self:
-            if res.state == 'cancelled':
-                continue
-            if res.state in ('allocated', 'ready_for_pickup') and res.copy_id:
-                res.copy_id.action_available()
+            if res.state not in ('waiting', 'allocated', 'ready_for_pickup'):
+                raise ValidationError('Only open reservations can be cancelled.')
+            res._release_copy()
             res.state = 'cancelled'
-            res._update_queue_positions()
+            res._leave_queue()
 
     def action_expire(self):
+        today = fields.Date.context_today(self)
+        for res in self.filtered(lambda r: r.state in ('allocated', 'ready_for_pickup') and r.expiry_date and r.expiry_date < today):
+            res._release_copy()
+            res.state = 'expired'
+            res._leave_queue()
+
+    @api.model
+    def _cron_expire_reservations(self):
         expired = self.search([
             ('state', 'in', ('allocated', 'ready_for_pickup')),
             ('expiry_date', '<', fields.Date.context_today(self)),
         ])
-        for res in expired:
-            if res.copy_id:
-                res.copy_id.action_available()
-            res.state = 'expired'
-            res._update_queue_positions()
+        expired.action_expire()
 
     def _notify_ready(self):
         self.ensure_one()

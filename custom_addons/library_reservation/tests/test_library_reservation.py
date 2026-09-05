@@ -1,5 +1,3 @@
-from dateutil.relativedelta import relativedelta
-
 from odoo import Command, fields
 from odoo.exceptions import ValidationError
 from odoo.tests import TransactionCase, new_test_user, tagged
@@ -38,7 +36,6 @@ class TestLibraryReservation(TransactionCase):
             'book_id': cls.book.id,
             'branch_id': cls.branch.id,
             'barcode': 'LIB01-BK-RES01',
-            'state': 'on_loan',
         })
 
         cls.circ_user = new_test_user(
@@ -79,13 +76,12 @@ class TestLibraryReservation(TransactionCase):
         self.assertEqual(r2.queue_position, 2)
 
     def test_allocate_no_available_copy(self):
-        self.copy1.state = 'on_loan'
+        self.copy1.action_on_loan()
         res = self._create_reservation()
         with self.assertRaises(ValidationError):
             res.action_allocate()
 
     def test_allocate_available_copy(self):
-        self.copy1.state = 'available'
         res = self._create_reservation()
         res.action_allocate()
         self.assertEqual(res.state, 'allocated')
@@ -93,34 +89,77 @@ class TestLibraryReservation(TransactionCase):
         self.assertEqual(self.copy1.state, 'reserved')
         self.assertTrue(res.ready_date)
         self.assertTrue(res.expiry_date)
+        self.assertEqual(res.queue_position, 0)
 
-    def test_ready_for_pickup(self):
-        self.copy1.state = 'available'
+    def test_ready_for_pickup_refreshes_expiry(self):
         res = self._create_reservation()
         res.action_allocate()
+        res.expiry_date = fields.Date.context_today(self)
         res.action_ready_for_pickup()
         self.assertEqual(res.state, 'ready_for_pickup')
+        self.assertGreater(res.expiry_date, fields.Date.context_today(self))
+        self.assertTrue(res.is_ready)
 
     def test_collect(self):
-        self.copy1.state = 'available'
         res = self._create_reservation()
         res.action_allocate()
         res.action_collect()
         self.assertEqual(res.state, 'collected')
         self.assertEqual(self.copy1.state, 'available')
+        self.assertFalse(res.copy_id)
+        self.assertEqual(res.queue_position, 0)
 
     def test_cancel_waiting(self):
         res = self._create_reservation()
         res.action_cancel()
         self.assertEqual(res.state, 'cancelled')
+        self.assertEqual(res.queue_position, 0)
 
     def test_cancel_allocated_releases_copy(self):
-        self.copy1.state = 'available'
         res = self._create_reservation()
         res.action_allocate()
         self.assertEqual(self.copy1.state, 'reserved')
         res.action_cancel()
         self.assertEqual(res.state, 'cancelled')
+        self.assertEqual(self.copy1.state, 'available')
+        self.assertFalse(res.copy_id)
+
+    def test_cancel_terminal_rejected(self):
+        res = self._create_reservation()
+        res.action_allocate()
+        res.action_collect()
+        with self.assertRaises(ValidationError):
+            res.action_cancel()
+
+    def test_duplicate_reservation_rejected(self):
+        self._create_reservation()
+        with self.assertRaises(ValidationError):
+            self._create_reservation()
+
+    def test_blocked_member_rejected(self):
+        self.member.action_block()
+        with self.assertRaises(ValidationError):
+            self._create_reservation()
+
+    def test_hold_days_must_be_positive(self):
+        with self.assertRaises(ValidationError):
+            self._create_reservation(hold_days=0)
+
+    def test_expire_single_record_only(self):
+        from datetime import timedelta
+        res = self._create_reservation()
+        res.action_allocate()
+        res.expiry_date = fields.Date.context_today(self) - timedelta(days=1)
+        other = self._create_reservation(
+            member_id=self.Member.create({
+                'partner_id': self.env['res.partner'].create({'name': 'Other'}).id,
+                'branch_id': self.branch.id,
+                'status': 'active',
+            }).id,
+        )
+        res.action_expire()
+        self.assertEqual(res.state, 'expired')
+        self.assertEqual(other.state, 'waiting')
         self.assertEqual(self.copy1.state, 'available')
 
     def test_user_can_read_reservations(self):
