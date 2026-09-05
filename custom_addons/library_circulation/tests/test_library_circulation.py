@@ -165,7 +165,7 @@ class TestLibraryCirculation(TransactionCase):
         loan = self._create_loan()
         loan.action_issue()
         line = loan.loan_line_ids[0]
-        line.due_datetime = fields.Datetime.now() + relativedelta(days=2)
+        line.with_context(loan_line_action=True).due_datetime = fields.Datetime.now() + relativedelta(days=2)
         old_due = line.due_datetime
         line.action_renew()
         self.assertEqual(line.renewal_count, 1)
@@ -175,7 +175,7 @@ class TestLibraryCirculation(TransactionCase):
         loan = self._create_loan()
         loan.action_issue()
         line = loan.loan_line_ids[0]
-        line.due_datetime = fields.Datetime.now() - relativedelta(days=1)
+        line.with_context(loan_line_action=True).due_datetime = fields.Datetime.now() - relativedelta(days=1)
         with self.assertRaises(ValidationError):
             line.action_renew()
 

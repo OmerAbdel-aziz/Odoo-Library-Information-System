@@ -112,17 +112,23 @@ class LibraryReservation(models.Model):
                 ('state', '=', 'waiting'),
             ], order='request_date, priority desc, id')
             for i, res in enumerate(waiting, 1):
-                res.queue_position = i
+                res.with_context(reservation_action=True).queue_position = i
+
+    def write(self, vals):
+        guarded = {'state', 'copy_id', 'queue_position', 'ready_date'}
+        if guarded & set(vals) and not self.env.context.get('reservation_action'):
+            raise ValidationError('Use the reservation workflow buttons to change reservations.')
+        return super().write(vals)
 
     def _release_copy(self):
         self.ensure_one()
         if self.copy_id:
             self.copy_id.action_available()
-            self.copy_id = False
+            self.with_context(reservation_action=True).write({'copy_id': False})
 
     def _leave_queue(self):
         self.ensure_one()
-        self.queue_position = 0
+        self.with_context(reservation_action=True).write({'queue_position': 0})
         self._recompute_queue_for_books()
 
     def action_allocate(self):
@@ -138,12 +144,14 @@ class LibraryReservation(models.Model):
             ], limit=1)
             if not available_copy:
                 raise ValidationError('No available copy of "%s" at %s.' % (book.name, res.preferred_branch_id.name))
-            res.copy_id = available_copy
+            res.with_context(reservation_action=True).write({
+                'copy_id': available_copy.id,
+                'ready_date': fields.Date.context_today(self),
+                'expiry_date': fields.Date.context_today(self) + relativedelta(days=res.hold_days),
+                'state': 'allocated',
+                'queue_position': 0,
+            })
             available_copy.action_reserved()
-            res.ready_date = fields.Date.context_today(self)
-            res.expiry_date = fields.Date.context_today(self) + relativedelta(days=res.hold_days)
-            res.state = 'allocated'
-            res.queue_position = 0
             res._notify_ready()
         self._recompute_queue_for_books()
 
@@ -151,15 +159,17 @@ class LibraryReservation(models.Model):
         for res in self:
             if res.state != 'allocated':
                 raise ValidationError('Only allocated reservations can be marked ready.')
-            res.expiry_date = fields.Date.context_today(self) + relativedelta(days=res.hold_days)
-            res.state = 'ready_for_pickup'
+            res.with_context(reservation_action=True).write({
+                'expiry_date': fields.Date.context_today(self) + relativedelta(days=res.hold_days),
+                'state': 'ready_for_pickup',
+            })
 
     def action_collect(self):
         for res in self:
             if res.state not in ('allocated', 'ready_for_pickup'):
                 raise ValidationError('Only allocated/ready reservations can be collected.')
             res._release_copy()
-            res.state = 'collected'
+            res.with_context(reservation_action=True).write({'state': 'collected'})
             res._leave_queue()
 
     def action_cancel(self):
@@ -167,14 +177,14 @@ class LibraryReservation(models.Model):
             if res.state not in ('waiting', 'allocated', 'ready_for_pickup'):
                 raise ValidationError('Only open reservations can be cancelled.')
             res._release_copy()
-            res.state = 'cancelled'
+            res.with_context(reservation_action=True).write({'state': 'cancelled'})
             res._leave_queue()
 
     def action_expire(self):
         today = fields.Date.context_today(self)
         for res in self.filtered(lambda r: r.state in ('allocated', 'ready_for_pickup') and r.expiry_date and r.expiry_date < today):
             res._release_copy()
-            res.state = 'expired'
+            res.with_context(reservation_action=True).write({'state': 'expired'})
             res._leave_queue()
 
     @api.model

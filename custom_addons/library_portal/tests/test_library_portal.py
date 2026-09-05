@@ -79,8 +79,10 @@ class TestLibraryPortal(TransactionCase):
 
     def test_portal_availability(self):
         availability = self.book._portal_availability()
-        self.assertEqual(availability['Main Library']['total'], 1)
-        self.assertEqual(availability['Main Library']['available'], 1)
+        entry = list(availability.values())[0]
+        self.assertEqual(entry['total'], 1)
+        self.assertEqual(entry['available'], 1)
+        self.assertEqual(entry['on_loan'], 0)
 
     def test_portal_dashboard(self):
         data = self.member._portal_dashboard()
@@ -107,6 +109,45 @@ class TestLibraryPortal(TransactionCase):
             'preferred_branch_id': self.branch.id,
         })
         self.assertEqual(reservation.state, 'waiting')
+
+    def test_blocked_member_no_portal_access(self):
+        self.member.action_block()
+        self.assertFalse(self.Member._get_portal_member(self.portal_user))
+        self.assertTrue(self.Member._get_any_member(self.portal_user))
+
+    def test_portal_event_visibility(self):
+        event = self.env['library.event'].create({
+            'title': 'Draft Event',
+            'event_type': 'workshop',
+            'branch_id': self.branch.id,
+            'start_datetime': '2026-10-01 10:00:00',
+            'end_datetime': '2026-10-01 12:00:00',
+        })
+        events = self.env['library.event'].with_user(self.portal_user).search([])
+        self.assertNotIn(event, events)
+        event.action_publish()
+        events = self.env['library.event'].with_user(self.portal_user).search([])
+        self.assertIn(event, events)
+
+    def test_portal_purchase_request(self):
+        request = self.env['library.purchase.request'].with_user(self.portal_user).create({
+            'member_id': self.member.id,
+            'book_name': 'Portal Requested Book',
+            'branch_id': self.branch.id,
+            'quantity': 1,
+        })
+        self.assertEqual(request.state, 'draft')
+        other = self.env['library.purchase.request'].search([('member_id', '=', self.other_member.id)])
+        own = self.env['library.purchase.request'].with_user(self.portal_user).search([])
+        self.assertIn(request, own)
+        for rec in other:
+            self.assertNotIn(rec, own)
+
+    def test_portal_search_pagination(self):
+        books = self.Book._portal_search(query='Portal', limit=1, offset=0)
+        self.assertLessEqual(len(books), 1)
+        count = self.Book._portal_search_count(query='Portal')
+        self.assertGreaterEqual(count, 1)
 
     def test_portal_can_renew(self):
         loan = self.Loan.create({

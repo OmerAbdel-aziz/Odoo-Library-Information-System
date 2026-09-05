@@ -16,6 +16,12 @@
         </t>
     </template>
 
+    <template id="portal_membership_restricted" name="Membership Restricted">
+        <t t-call="portal.portal_layout">
+            <div class="alert alert-warning">Your membership (<t t-out="member.member_number"/>) is currently <t t-out="member.status"/>. Please contact the library.</div>
+        </t>
+    </template>
+
     <template id="portal_library_home" name="Library Dashboard">
         <t t-call="portal.portal_layout">
             <h3>My Library</h3>
@@ -30,8 +36,15 @@
                 <a href="/my/library/loans">Loans</a> |
                 <a href="/my/library/fines">Fines</a> |
                 <a href="/my/library/reservations">Reservations</a> |
-                <a href="/my/library/events">Events</a>
+                <a href="/my/library/events">Events</a> |
+                <a href="/my/library/requests">Purchase Requests</a>
             </p>
+            <h4>Library Locations</h4>
+            <ul>
+                <li t-foreach="branches" t-as="branch">
+                    <t t-out="branch.name"/> — <t t-out="branch.city"/>
+                </li>
+            </ul>
         </t>
     </template>
 
@@ -47,6 +60,7 @@
                     <a t-att-href="'/my/library/books/%s' % book.id"><t t-out="book.display_name"/></a>
                 </li>
             </ul>
+            <p>Page <t t-out="page"/> of <t t-out="pages"/></p>
         </t>
     </template>
 
@@ -55,8 +69,9 @@
             <h3><t t-out="book.display_name"/></h3>
             <div t-if="error" class="alert alert-danger"><t t-out="error"/></div>
             <ul>
-                <li t-foreach="availability.items()" t-as="item">
-                    <t t-out="item[0]"/>: <t t-out="item[1]['available']"/> / <t t-out="item[1]['total']"/> available
+                <li t-foreach="availability.values()" t-as="entry">
+                    <t t-out="entry['branch']"/>: <t t-out="entry['available']"/> / <t t-out="entry['total']"/> available
+                    (<t t-out="entry['on_loan']"/> on loan, <t t-out="entry['reserved']"/> reserved, <t t-out="entry['other']"/> other)
                 </li>
             </ul>
             <form t-att-action="'/my/library/books/%s/reserve' % book.id" method="post">
@@ -98,6 +113,7 @@
     <template id="portal_library_reservations" name="My Reservations">
         <t t-call="portal.portal_layout">
             <h3>My Reservations</h3>
+            <div t-if="error" class="alert alert-danger"><t t-out="error"/></div>
             <ul>
                 <li t-foreach="reservations" t-as="res">
                     <t t-out="res.book_id.name"/> — <t t-out="res.state"/>
@@ -124,6 +140,30 @@
                     </form>
                 </li>
             </ul>
+        </t>
+    </template>
+    <template id="portal_library_requests" name="Purchase Requests">
+        <t t-call="portal.portal_layout">
+            <h3>Purchase Requests</h3>
+            <div t-if="error" class="alert alert-danger"><t t-out="error"/></div>
+            <ul>
+                <li t-foreach="requests" t-as="req">
+                    <t t-out="req.book_name"/> — <t t-out="req.state"/>
+                </li>
+            </ul>
+            <h4>Request a book</h4>
+            <form action="/my/library/requests/create" method="post">
+                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                <input type="text" name="book_name" placeholder="Book title" required="1"/>
+                <input type="text" name="author" placeholder="Author"/>
+                <input type="text" name="isbn" placeholder="ISBN"/>
+                <input type="number" name="quantity" value="1" min="1"/>
+                <select name="branch_id">
+                    <option t-foreach="branches" t-as="branch" t-att-value="branch.id"><t t-out="branch.name"/></option>
+                </select>
+                <input type="text" name="reason" placeholder="Why is this book needed?"/>
+                <button type="submit">Submit request</button>
+            </form>
         </t>
     </template>
 </odoo>

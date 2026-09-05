@@ -13,7 +13,7 @@ with registration.
     'depends': [
         'library_base', 'library_catalog', 'library_membership',
         'library_circulation', 'library_reservation', 'library_events',
-        'portal',
+        'library_acquisition', 'portal',
     ],
     'data': [
         'security/library_portal_security.xml',

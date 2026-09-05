@@ -90,11 +90,13 @@ class LibraryLoan(models.Model):
 
                 plan = member.membership_plan_id
                 loan_days = plan.loan_period_days if plan else 14
-                line.issue_datetime = fields.Datetime.now()
-                line.due_datetime = fields.Datetime.now() + relativedelta(days=loan_days)
+                line.with_context(loan_line_action=True).write({
+                    'issue_datetime': fields.Datetime.now(),
+                    'due_datetime': fields.Datetime.now() + relativedelta(days=loan_days),
+                })
                 copy.action_on_loan()
 
-            loan.loan_line_ids.write({'state': 'issued'})
+            loan.loan_line_ids.with_context(loan_line_action=True).write({'state': 'issued'})
             member.current_loans_count += len(loan.loan_line_ids)
             due_datetimes = loan.loan_line_ids.mapped('due_datetime')
             loan.due_date = max(due_datetimes).date() if due_datetimes else False
@@ -121,7 +123,7 @@ class LibraryLoan(models.Model):
                 issued_lines = loan.loan_line_ids.filtered(lambda l: l.state == 'issued')
                 for line in issued_lines:
                     line.book_copy_id.action_available()
-                    line.state = 'cancelled'
+                issued_lines.with_context(loan_line_action=True).write({'state': 'cancelled'})
                 loan.member_id.current_loans_count -= len(issued_lines)
             loan.state = 'cancelled'
 

@@ -73,6 +73,13 @@ class LibraryLoanLine(models.Model):
                 line.is_overdue = False
                 line.days_overdue = 0
 
+    def write(self, vals):
+        guarded = {'state', 'issue_datetime', 'due_datetime', 'return_datetime',
+                   'renewal_count', 'fine_amount'}
+        if guarded & set(vals) and not self.env.context.get('loan_line_action'):
+            raise ValidationError('Use the loan workflow buttons to change loan items.')
+        return super().write(vals)
+
     def action_renew(self):
         for line in self:
             if line.state != 'issued':
@@ -85,15 +92,19 @@ class LibraryLoanLine(models.Model):
             if line.renewal_count >= max_renewals:
                 raise ValidationError('Maximum renewals (%d) reached.' % max_renewals)
             loan_days = plan.loan_period_days if plan else 14
-            line.due_datetime = fields.Datetime.now() + relativedelta(days=loan_days)
-            line.renewal_count += 1
+            line.with_context(loan_line_action=True).write({
+                'due_datetime': fields.Datetime.now() + relativedelta(days=loan_days),
+                'renewal_count': line.renewal_count + 1,
+            })
 
     def _process_return(self):
         self.ensure_one()
         if self.state != 'issued':
             return
-        self.return_datetime = fields.Datetime.now()
-        self.state = 'returned'
+        self.with_context(loan_line_action=True).write({
+            'return_datetime': fields.Datetime.now(),
+            'state': 'returned',
+        })
 
         copy = self.book_copy_id
         if self.condition_on_return == 'damaged':
@@ -110,7 +121,8 @@ class LibraryLoanLine(models.Model):
             if not existing:
                 plan = self.member_id.membership_plan_id
                 fine_per_day = plan.fine_per_day if plan else 1.0
-                self.fine_amount = self.days_overdue * fine_per_day
+                fine_amount = self.days_overdue * fine_per_day
+                self.with_context(loan_line_action=True).write({'fine_amount': fine_amount})
                 if self.fine_amount > 0:
                     self.env['library.fine'].create({
                         'member_id': self.member_id.id,

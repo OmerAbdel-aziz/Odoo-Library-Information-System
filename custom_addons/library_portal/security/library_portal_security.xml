@@ -37,6 +37,18 @@
             <field name="domain_force">[('member_id.partner_id', '=', user.partner_id.id)]</field>
             <field name="groups" eval="[(4, ref('base.group_portal'))]"/>
         </record>
+        <record id="library_event_portal_rule" model="ir.rule">
+            <field name="name">Library Event: portal sees open events</field>
+            <field name="model_id" ref="library_events.model_library_event"/>
+            <field name="domain_force">[('state', 'in', ('published', 'ongoing'))]</field>
+            <field name="groups" eval="[(4, ref('base.group_portal'))]"/>
+        </record>
+        <record id="library_purchase_request_portal_rule" model="ir.rule">
+            <field name="name">Library Purchase Request: portal sees own requests</field>
+            <field name="model_id" ref="library_acquisition.model_library_purchase_request"/>
+            <field name="domain_force">[('member_id.partner_id', '=', user.partner_id.id)]</field>
+            <field name="groups" eval="[(4, ref('base.group_portal'))]"/>
+        </record>
         <record id="ir_sequence_portal_rule" model="ir.rule">
             <field name="name">Sequences: portal may use library sequences</field>
             <field name="model_id" ref="base.model_ir_sequence"/>

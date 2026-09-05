@@ -10,4 +10,5 @@ access_library_fine_portal,library.fine.portal,library_circulation.model_library
 access_library_reservation_portal,library.reservation.portal,library_reservation.model_library_reservation,base.group_portal,1,1,1,0
 access_library_event_portal,library.event.portal,library_events.model_library_event,base.group_portal,1,0,0,0
 access_library_event_registration_portal,library.event.registration.portal,library_events.model_library_event_registration,base.group_portal,1,1,1,0
+access_library_purchase_request_portal,library.purchase.request.portal,library_acquisition.model_library_purchase_request,base.group_portal,1,0,1,0
 access_ir_sequence_portal,ir.sequence.portal,base.model_ir_sequence,base.group_portal,1,0,0,0

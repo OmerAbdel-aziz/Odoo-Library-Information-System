@@ -1,4 +1,4 @@
-from odoo import api, fields, models
+from odoo import api, models
 
 
 class LibraryMemberPortal(models.Model):
@@ -6,6 +6,14 @@ class LibraryMemberPortal(models.Model):
 
     @api.model
     def _get_portal_member(self, user):
+        return self.search([
+            ('partner_id', '=', user.partner_id.id),
+            ('active', '=', True),
+            ('status', '=', 'active'),
+        ], limit=1)
+
+    @api.model
+    def _get_any_member(self, user):
         return self.search([
             ('partner_id', '=', user.partner_id.id),
             ('active', '=', True),
