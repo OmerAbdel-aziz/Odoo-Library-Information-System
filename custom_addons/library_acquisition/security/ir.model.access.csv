@@ -1,0 +1,4 @@
+id,name,model_id/id,group_id/id,perm_read,perm_write,perm_create,perm_unlink
+access_library_purchase_request_user,library.purchase.request.user,model_library_purchase_request,library_base.library_group_acquisition,1,1,1,0
+access_library_purchase_request_branch_manager,library.purchase.request.branch.manager,model_library_purchase_request,library_base.library_group_branch_manager,1,1,1,0
+access_library_purchase_request_library_manager,library.purchase.request.library.manager,model_library_purchase_request,library_base.library_group_library_manager,1,1,1,1
