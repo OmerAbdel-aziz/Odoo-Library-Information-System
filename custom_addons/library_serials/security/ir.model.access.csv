@@ -1,0 +1,7 @@
+id,name,model_id/id,group_id/id,perm_read,perm_write,perm_create,perm_unlink
+access_library_subscription_user,library.subscription.user,model_library_subscription,library_base.library_group_librarian,1,1,1,0
+access_library_subscription_branch_manager,library.subscription.branch.manager,model_library_subscription,library_base.library_group_branch_manager,1,1,1,0
+access_library_subscription_library_manager,library.subscription.library.manager,model_library_subscription,library_base.library_group_library_manager,1,1,1,1
+access_library_serial_issue_user,library.serial.issue.user,model_library_serial_issue,library_base.library_group_librarian,1,1,1,0
+access_library_serial_issue_branch_manager,library.serial.issue.branch.manager,model_library_serial_issue,library_base.library_group_branch_manager,1,1,1,0
+access_library_serial_issue_library_manager,library.serial.issue.library.manager,model_library_serial_issue,library_base.library_group_library_manager,1,1,1,1

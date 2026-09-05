@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo noupdate="1">
+    <record id="seq_library_subscription" model="ir.sequence">
+        <field name="name">Library Subscription</field>
+        <field name="code">library.subscription</field>
+        <field name="prefix">LIBSUB</field>
+        <field name="padding">6</field>
+        <field name="company_id" eval="False"/>
+    </record>
+    <record id="seq_library_serial_issue" model="ir.sequence">
+        <field name="name">Library Serial Issue</field>
+        <field name="code">library.serial.issue</field>
+        <field name="prefix">SUBISS</field>
+        <field name="padding">6</field>
+        <field name="company_id" eval="False"/>
+    </record>
+</odoo>

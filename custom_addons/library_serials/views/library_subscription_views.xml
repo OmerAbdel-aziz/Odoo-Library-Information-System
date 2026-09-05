@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="library_subscription_view_list" model="ir.ui.view">
+        <field name="name">library.subscription.list</field>
+        <field name="model">library.subscription</field>
+        <field name="arch" type="xml">
+            <list string="Subscriptions" multi_edit="1">
+                <field name="name"/>
+                <field name="title"/>
+                <field name="supplier_id" optional="show"/>
+                <field name="branch_id" optional="show"/>
+                <field name="frequency"/>
+                <field name="expected_next_issue" optional="show"/>
+                <field name="issue_count" string="Issues"/>
+                <field name="active" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="library_subscription_view_form" model="ir.ui.view">
+        <field name="name">library.subscription.form</field>
+        <field name="model">library.subscription</field>
+        <field name="arch" type="xml">
+            <form string="Subscription">
+                <header>
+                    <button name="action_generate_issues" type="object" string="Generate Issues"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_issues" type="object" class="oe_stat_button" icon="fa-list">
+                            <field name="issue_count" widget="statinfo" string="Issues"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <label for="title"/>
+                        <h1><field name="title" placeholder="e.g. National Geographic"/></h1>
+                    </div>
+                    <group>
+                        <group string="Subscription">
+                            <field name="active" invisible="1"/>
+                            <field name="name"/>
+                            <field name="supplier_id"/>
+                            <field name="branch_id"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                        <group string="Schedule">
+                            <field name="frequency"/>
+                            <field name="start_date"/>
+                            <field name="end_date"/>
+                            <field name="expected_next_issue"/>
+                            <field name="cost"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Issues" name="issues">
+                            <field name="issue_ids">
+                                <list string="Issues" editable="bottom">
+                                    <field name="name" readonly="1"/>
+                                    <field name="label"/>
+                                    <field name="expected_date"/>
+                                    <field name="received_date" readonly="1"/>
+                                    <field name="state" readonly="1"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notes" name="notes">
+                            <field name="notes" placeholder="Internal notes..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="library_subscription_view_search" model="ir.ui.view">
+        <field name="name">library.subscription.search</field>
+        <field name="model">library.subscription</field>
+        <field name="arch" type="xml">
+            <search string="Subscriptions">
+                <field name="name"/>
+                <field name="title"/>
+                <field name="supplier_id"/>
+                <separator/>
+                <filter name="active" string="Active" domain="[('active', '=', True)]"/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter name="group_by_branch" string="Branch" context="{'group_by': 'branch_id'}"/>
+                    <filter name="group_by_frequency" string="Frequency" context="{'group_by': 'frequency'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="library_subscription_action" model="ir.actions.act_window">
+        <field name="name">Subscriptions</field>
+        <field name="res_model">library.subscription</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create a subscription</p>
+            <p>Track magazines and journals delivered to the library.</p>
+        </field>
+    </record>
+</odoo>
