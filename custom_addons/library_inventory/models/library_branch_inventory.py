@@ -39,6 +39,8 @@ class LibraryBranchInventory(models.Model):
         for branch in self:
             if not branch.warehouse_id:
                 raise ValidationError('Branch "%s" has no warehouse set.' % branch.name)
+            if branch.warehouse_id.company_id != branch.company_id:
+                raise ValidationError('Warehouse of branch "%s" belongs to a different company.' % branch.name)
             parent = branch.warehouse_id.lot_stock_id
             if not parent:
                 raise ValidationError('Warehouse of branch "%s" has no stock location.' % branch.name)

@@ -84,6 +84,27 @@ class TestLibraryInventory(TransactionCase):
         with self.assertRaises(ValidationError):
             transfer.action_approve()
 
+    def test_approve_rejects_copy_not_at_source(self):
+        transfer = self._create_transfer(
+            source_branch_id=self.dest.id,
+            dest_branch_id=self.source.id,
+        )
+        with self.assertRaises(ValidationError):
+            transfer.action_approve()
+
+    def test_approve_rejects_duplicate_transfer(self):
+        self._create_transfer()
+        with self.assertRaises(ValidationError):
+            self._create_transfer().action_approve()
+
+    def _lot_qty(self, location):
+        quants = self.env['stock.quant'].search([
+            ('product_id', '=', self.book.product_id.id),
+            ('lot_id', '=', self.copy1.stock_lot_id.id),
+            ('location_id', '=', location.id),
+        ])
+        return sum(quants.mapped('quantity'))
+
     def test_full_workflow(self):
         transfer = self._create_transfer()
         transfer.action_approve()
@@ -94,6 +115,7 @@ class TestLibraryInventory(TransactionCase):
         self.assertEqual(self.copy1.state, 'in_transit')
         transfer.action_ship()
         self.assertEqual(transfer.state, 'in_transit')
+        self.assertEqual(transfer.picking_id.state, 'done')
         transfer.action_receive()
         self.assertEqual(transfer.state, 'received')
         transfer.action_complete()
@@ -101,6 +123,8 @@ class TestLibraryInventory(TransactionCase):
         self.assertEqual(self.copy1.branch_id, self.dest)
         self.assertEqual(self.copy1.state, 'available')
         self.assertFalse(self.copy1.shelf_id)
+        self.assertEqual(self._lot_qty(self.dest.available_location_id), 1)
+        self.assertEqual(self._lot_qty(self.dest.processing_location_id), 0)
 
     def test_cancel_prepared_releases_copy(self):
         transfer = self._create_transfer()
@@ -110,6 +134,18 @@ class TestLibraryInventory(TransactionCase):
         transfer.action_cancel()
         self.assertEqual(transfer.state, 'cancelled')
         self.assertEqual(self.copy1.state, 'available')
+
+    def test_cancel_after_ship_reverses_stock(self):
+        transfer = self._create_transfer()
+        transfer.action_approve()
+        transfer.action_prepare()
+        transfer.action_ship()
+        transfer.action_cancel()
+        self.assertEqual(transfer.state, 'cancelled')
+        self.assertEqual(self.copy1.state, 'available')
+        self.assertEqual(self.copy1.branch_id, self.source)
+        self.assertEqual(self._lot_qty(self.source.available_location_id), 1)
+        self.assertEqual(self._lot_qty(self.dest.processing_location_id), 0)
 
     def test_cancel_completed_rejected(self):
         transfer = self._create_transfer()
