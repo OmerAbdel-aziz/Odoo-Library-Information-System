@@ -45,10 +45,21 @@ class LibraryBranch(models.Model):
     section_count = fields.Integer(compute='_compute_location_counts')
     shelf_count = fields.Integer(compute='_compute_location_counts')
     active = fields.Boolean(default=True)
+    warehouse_id = fields.Many2one(
+        'stock.warehouse',
+        string='Linked Warehouse',
+        ondelete='set null',
+        help='Warehouse linked to this branch for inventory integration.',
+    )
 
-    _code_unique = models.Constraint('UNIQUE(code)', 'The branch code must be unique.')
     _opening_time_range = models.Constraint('CHECK(opening_time >= 0 AND opening_time <= 24)', 'Opening time must be between 0 and 24.')
     _closing_time_range = models.Constraint('CHECK(closing_time >= 0 AND closing_time <= 24)', 'Closing time must be between 0 and 24.')
+
+    @api.constrains('code')
+    def _check_code_unique(self):
+        for branch in self:
+            if branch.code and self.search_count([('code', '=', branch.code), ('id', '!=', branch.id)]):
+                raise ValidationError('The branch code must be unique.')
 
     @api.depends('floor_ids', 'floor_ids.section_ids', 'floor_ids.section_ids.shelf_ids')
     def _compute_location_counts(self):
@@ -67,26 +78,30 @@ class LibraryBranch(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
-            if vals.get('code'):
+            if 'code' in vals and vals['code']:
                 vals['code'] = vals['code'].strip().upper()
+            elif not vals.get('code'):
+                vals['code'] = self.env['ir.sequence'].next_by_code('library.branch')
         return super().create(vals_list)
 
     def write(self, vals):
-        if vals.get('code'):
+        if 'code' in vals and vals['code']:
             vals['code'] = vals['code'].strip().upper()
         return super().write(vals)
 
     @api.constrains('latitude', 'longitude')
     def _check_coordinates(self):
         for branch in self:
-            if branch.latitude and not -90 <= branch.latitude <= 90:
+            if branch.latitude != 0.0 and not -90 <= branch.latitude <= 90:
                 raise ValidationError('Latitude must be between -90 and 90.')
-            if branch.longitude and not -180 <= branch.longitude <= 180:
+            if branch.longitude != 0.0 and not -180 <= branch.longitude <= 180:
                 raise ValidationError('Longitude must be between -180 and 180.')
 
     @api.constrains('opening_time', 'closing_time')
     def _check_working_hours(self):
         for branch in self:
+            if (branch.opening_time != 0.0) != (branch.closing_time != 0.0):
+                raise ValidationError('Both opening and closing times must be set together.')
             if branch.opening_time and branch.closing_time and branch.opening_time >= branch.closing_time:
                 raise ValidationError('Closing time must be later than opening time.')
 

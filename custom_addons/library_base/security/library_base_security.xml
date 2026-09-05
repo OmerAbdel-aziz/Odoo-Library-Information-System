@@ -115,6 +115,31 @@
             <field name="groups" eval="[(4, ref('library_group_user'))]"/>
         </record>
 
+        <record id="library_branch_branch_manager_rule" model="ir.rule">
+            <field name="name">Library Branch: branch managers see all branches</field>
+            <field name="model_id" ref="model_library_branch"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('library_group_branch_manager'))]"/>
+        </record>
+        <record id="library_floor_branch_manager_rule" model="ir.rule">
+            <field name="name">Library Floor: branch managers see all branches</field>
+            <field name="model_id" ref="model_library_floor"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('library_group_branch_manager'))]"/>
+        </record>
+        <record id="library_section_branch_manager_rule" model="ir.rule">
+            <field name="name">Library Section: branch managers see all branches</field>
+            <field name="model_id" ref="model_library_section"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('library_group_branch_manager'))]"/>
+        </record>
+        <record id="library_shelf_branch_manager_rule" model="ir.rule">
+            <field name="name">Library Shelf: branch managers see all branches</field>
+            <field name="model_id" ref="model_library_shelf"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('library_group_branch_manager'))]"/>
+        </record>
+
         <record id="library_branch_manager_rule" model="ir.rule">
             <field name="name">Library Branch: managers see all branches</field>
             <field name="model_id" ref="model_library_branch"/>

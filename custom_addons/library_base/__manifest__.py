@@ -12,10 +12,11 @@ Base module for the Library Information System. It defines the branch and
 physical location hierarchy shared by catalog, circulation, inventory, maps,
 portal, and reporting modules.
 """,
-    'depends': ['base'],
+    'depends': ['base', 'stock'],
     'data': [
         'security/library_base_security.xml',
         'security/ir.model.access.csv',
+        'data/library_sequence_data.xml',
         'data/library_weekday_data.xml',
         'views/library_base_menus.xml',
         'views/library_branch_views.xml',

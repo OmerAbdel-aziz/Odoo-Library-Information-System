@@ -21,6 +21,4 @@ class LibraryWeekday(models.Model):
     )
     sequence = fields.Integer(default=10)
 
-    _sql_constraints = [
-        ('code_unique', 'unique(code)', 'The working day code must be unique.'),
-    ]
+    _code_unique = models.Constraint('UNIQUE(code)', 'The working day code must be unique.')

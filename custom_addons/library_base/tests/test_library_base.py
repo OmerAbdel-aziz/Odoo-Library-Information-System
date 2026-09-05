@@ -89,6 +89,39 @@ class TestLibraryBase(TransactionCase):
                 'closing_time': 9.0,
             })
 
+    def test_duplicate_branch_code_rejected(self):
+        with self.assertRaises(ValidationError):
+            self.Branch.create({
+                'name': 'Duplicate',
+                'code': 'LIB01',
+            })
+
+    def test_branch_with_zero_coordinates_accepted(self):
+        branch = self.Branch.create({
+            'name': 'Null Island',
+            'code': 'NULL',
+            'latitude': 0.0,
+            'longitude': 0.0,
+        })
+        self.assertEqual(branch.latitude, 0.0)
+        self.assertEqual(branch.longitude, 0.0)
+
+    def test_branch_partial_working_hours_rejected(self):
+        with self.assertRaises(ValidationError):
+            self.Branch.create({
+                'name': 'Partial Hours',
+                'code': 'partial',
+                'opening_time': 8.0,
+                'closing_time': 0.0,
+            })
+
+    def test_branch_auto_generates_code_when_not_provided(self):
+        branch = self.Branch.create({
+            'name': 'Auto Code',
+        })
+        self.assertTrue(branch.code)
+        self.assertTrue(branch.code.startswith('LIB'))
+
     def test_user_sees_only_assigned_branches(self):
         branches = self.Branch.with_user(self.library_user).search([])
         self.assertIn(self.branch_a, branches)
@@ -102,7 +135,7 @@ class TestLibraryBase(TransactionCase):
         self.assertIn(self.branch_a, branches)
         self.assertIn(self.branch_b, branches)
 
-    def test_branch_manager_can_create_location_only_in_allowed_branch(self):
+    def test_branch_manager_can_create_location_in_any_branch(self):
         floor = self.Floor.with_user(self.branch_manager).create({
             'name': 'First Floor',
             'code': '1f',
@@ -110,13 +143,12 @@ class TestLibraryBase(TransactionCase):
         })
         self.assertEqual(floor.branch_id, self.branch_a)
 
-        with mute_logger('odoo.addons.base.models.ir_rule'):
-            with self.assertRaises(AccessError):
-                self.Floor.with_user(self.branch_manager).create({
-                    'name': 'Restricted Floor',
-                    'code': 'rf',
-                    'branch_id': self.branch_b.id,
-                })
+        floor_b = self.Floor.with_user(self.branch_manager).create({
+            'name': 'Annex Floor',
+            'code': 'af',
+            'branch_id': self.branch_b.id,
+        })
+        self.assertEqual(floor_b.branch_id, self.branch_b)
 
     def test_library_user_cannot_modify_branch(self):
         with mute_logger('odoo.addons.base.models.ir_model'):
