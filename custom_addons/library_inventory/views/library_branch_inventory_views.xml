@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="library_branch_view_form_inventory" model="ir.ui.view">
+        <field name="name">library.branch.form.inventory</field>
+        <field name="model">library.branch</field>
+        <field name="inherit_id" ref="library_base.library_branch_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/group[last()]" position="after">
+                <group string="Stock Locations">
+                    <group>
+                        <button name="action_setup_stock_locations" type="object" string="Setup Stock Locations" class="oe_highlight"/>
+                        <field name="processing_location_id"/>
+                        <field name="available_location_id"/>
+                        <field name="hold_shelf_location_id"/>
+                    </group>
+                    <group>
+                        <field name="repair_location_id"/>
+                        <field name="withdrawn_location_id"/>
+                    </group>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

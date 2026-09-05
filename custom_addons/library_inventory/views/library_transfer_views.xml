@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="library_transfer_view_list" model="ir.ui.view">
+        <field name="name">library.transfer.list</field>
+        <field name="model">library.transfer</field>
+        <field name="arch" type="xml">
+            <list string="Transfers" multi_edit="1">
+                <field name="name"/>
+                <field name="book_copy_id"/>
+                <field name="source_branch_id"/>
+                <field name="dest_branch_id"/>
+                <field name="request_date"/>
+                <field name="state" widget="badge" decoration-success="state == 'completed'" decoration-info="state in ('approved', 'prepared')" decoration-warning="state in ('in_transit', 'received')" decoration-muted="state == 'cancelled'"/>
+                <field name="active" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="library_transfer_view_form" model="ir.ui.view">
+        <field name="name">library.transfer.form</field>
+        <field name="model">library.transfer</field>
+        <field name="arch" type="xml">
+            <form string="Transfer">
+                <header>
+                    <button name="action_approve" type="object" string="Approve" class="oe_highlight" invisible="state != 'requested'"/>
+                    <button name="action_prepare" type="object" string="Prepare" class="oe_highlight" invisible="state != 'approved'"/>
+                    <button name="action_ship" type="object" string="Ship" class="oe_highlight" invisible="state != 'prepared'"/>
+                    <button name="action_receive" type="object" string="Receive" class="oe_highlight" invisible="state != 'in_transit'"/>
+                    <button name="action_complete" type="object" string="Complete" class="oe_highlight" invisible="state != 'received'"/>
+                    <button name="action_cancel" type="object" string="Cancel" invisible="state in ('completed', 'cancelled')"/>
+                    <field name="state" widget="statusbar" statusbar_visible="requested,approved,prepared,in_transit,received,completed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group string="Transfer">
+                            <field name="active" invisible="1"/>
+                            <field name="book_copy_id"/>
+                            <field name="book_id"/>
+                            <field name="source_branch_id"/>
+                            <field name="dest_branch_id"/>
+                            <field name="picking_id"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                        <group string="Tracking">
+                            <field name="request_date"/>
+                            <field name="requested_by"/>
+                            <field name="approved_by"/>
+                        </group>
+                    </group>
+                    <group string="Notes">
+                        <field name="notes" placeholder="Internal notes..."/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="library_transfer_view_search" model="ir.ui.view">
+        <field name="name">library.transfer.search</field>
+        <field name="model">library.transfer</field>
+        <field name="arch" type="xml">
+            <search string="Transfers">
+                <field name="name"/>
+                <field name="book_copy_id"/>
+                <separator/>
+                <filter name="requested" string="Requested" domain="[('state', '=', 'requested')]"/>
+                <filter name="approved" string="Approved" domain="[('state', '=', 'approved')]"/>
+                <filter name="in_transit" string="In Transit" domain="[('state', '=', 'in_transit')]"/>
+                <filter name="completed" string="Completed" domain="[('state', '=', 'completed')]"/>
+                <group>
+                    <filter name="group_by_source" string="Source" context="{'group_by': 'source_branch_id'}"/>
+                    <filter name="group_by_dest" string="Destination" context="{'group_by': 'dest_branch_id'}"/>
+                    <filter name="group_by_state" string="Status" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="library_transfer_action" model="ir.actions.act_window">
+        <field name="name">Transfers</field>
+        <field name="res_model">library.transfer</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create a new transfer</p>
+            <p>Move book copies between branches.</p>
+        </field>
+    </record>
+
+    <menuitem id="library_transfer_menu" name="Transfers" parent="library_base.library_menu_operations" action="library_transfer_action" sequence="30" groups="library_base.library_group_inventory"/>
+</odoo>
