@@ -12,7 +12,7 @@ new fines, and event reminders — via inbox and email.
 """,
     'depends': [
         'library_base', 'library_membership', 'library_circulation',
-        'library_reservation', 'library_events', 'mail',
+        'library_reservation', 'library_events', 'library_acquisition', 'mail',
     ],
     'data': [
         'security/library_notifications_security.xml',

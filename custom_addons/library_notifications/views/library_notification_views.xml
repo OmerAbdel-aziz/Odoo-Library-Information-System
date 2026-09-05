@@ -28,16 +28,16 @@
                 <sheet>
                     <div class="oe_title">
                         <label for="subject"/>
-                        <h1><field name="subject"/></h1>
+                        <h1><field name="subject" readonly="state != 'pending'"/></h1>
                     </div>
                     <group>
                         <group string="Notification">
                             <field name="active" invisible="1"/>
-                            <field name="name"/>
-                            <field name="member_id"/>
-                            <field name="notification_type"/>
-                            <field name="channel"/>
-                            <field name="reference"/>
+                            <field name="name" readonly="state != 'pending'"/>
+                            <field name="member_id" readonly="state != 'pending'"/>
+                            <field name="notification_type" readonly="state != 'pending'"/>
+                            <field name="channel" readonly="state != 'pending'"/>
+                            <field name="reference" readonly="state != 'pending'"/>
                         </group>
                         <group string="Delivery">
                             <field name="scheduled_date"/>
@@ -48,7 +48,7 @@
                         </group>
                     </group>
                     <group string="Message">
-                        <field name="body"/>
+                        <field name="body" readonly="state != 'pending'"/>
                     </group>
                     <div class="oe_chatter">
                         <field name="message_ids"/>

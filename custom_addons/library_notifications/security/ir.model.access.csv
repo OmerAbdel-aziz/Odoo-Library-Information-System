@@ -1,4 +1,5 @@
 id,name,model_id/id,group_id/id,perm_read,perm_write,perm_create,perm_unlink
 access_library_notification_user,library.notification.user,model_library_notification,library_base.library_group_librarian,1,1,1,0
+access_library_notification_circulation,library.notification.circulation,model_library_notification,library_base.library_group_circulation,1,0,0,0
 access_library_notification_branch_manager,library.notification.branch.manager,model_library_notification,library_base.library_group_branch_manager,1,1,1,0
 access_library_notification_library_manager,library.notification.library.manager,model_library_notification,library_base.library_group_library_manager,1,1,1,1

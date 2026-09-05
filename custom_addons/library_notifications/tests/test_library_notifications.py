@@ -1,6 +1,7 @@
 from datetime import timedelta
 
 from odoo import Command, fields
+from odoo.exceptions import ValidationError
 from odoo.tests import TransactionCase, new_test_user, tagged
 
 
@@ -190,6 +191,92 @@ class TestLibraryNotifications(TransactionCase):
         self.Notification._cron_dispatch_pending()
         sent = self.Notification.search([('state', '=', 'sent')])
         self.assertEqual(len(sent), 1)
+
+    def test_no_repeat_after_send(self):
+        loan = self._make_loan()
+        line = loan.loan_line_ids[0]
+        line.with_context(loan_line_action=True).write({
+            'due_datetime': fields.Datetime.now() - timedelta(days=2),
+        })
+        self.Notification._generate_loan_notifications()
+        pending = self.Notification.search([
+            ('notification_type', '=', 'overdue'),
+            ('state', '=', 'pending'),
+        ])
+        pending.action_send()
+        self.Notification._generate_loan_notifications()
+        self.assertEqual(self.Notification.search_count([
+            ('notification_type', '=', 'overdue'),
+        ]), 1)
+
+    def test_email_without_address_fails(self):
+        self.partner.email = False
+        notif = self.Notification.create({
+            'member_id': self.member.id,
+            'notification_type': 'overdue',
+            'subject': 'X',
+            'body': 'Y',
+            'channel': 'email',
+        })
+        notif.action_send()
+        self.assertEqual(notif.state, 'failed')
+        self.assertIn('email', notif.failure_reason.lower())
+
+    def test_resend_blocked(self):
+        notif = self.Notification.create({
+            'member_id': self.member.id,
+            'notification_type': 'overdue',
+            'subject': 'X',
+            'body': 'Y',
+            'channel': 'inbox',
+        })
+        notif.action_send()
+        self.assertEqual(notif.state, 'sent')
+        notif.action_send()
+        self.assertEqual(notif.state, 'failed')
+        self.assertIn('pending', notif.failure_reason.lower())
+
+    def test_future_scheduled_not_dispatched(self):
+        self.Notification.create({
+            'member_id': self.member.id,
+            'notification_type': 'overdue',
+            'subject': 'X',
+            'body': 'Y',
+            'channel': 'inbox',
+            'scheduled_date': fields.Date.context_today(self) + timedelta(days=5),
+        })
+        self.Notification._cron_dispatch_pending()
+        self.assertEqual(self.Notification.search_count([('state', '=', 'sent')]), 0)
+
+    def test_request_available_generated(self):
+        purchase_request = self.env['library.purchase.request'].create({
+            'member_id': self.member.id,
+            'book_name': 'Requested Title',
+            'branch_id': self.branch.id,
+            'quantity': 1,
+            'state': 'done',
+        })
+        self.Notification._generate_request_notifications()
+        pending = self.Notification.search([
+            ('notification_type', '=', 'request_available'),
+            ('state', '=', 'pending'),
+        ])
+        self.assertEqual(len(pending), 1)
+
+    def test_circulation_can_read(self):
+        circ = self.env['res.users'].create({
+            'name': 'Circ', 'login': 'notif_circ',
+            'group_ids': [Command.set([self.env.ref('library_base.library_group_circulation').id])],
+        })
+        circ.allowed_branch_ids = [Command.set(self.branch.ids)]
+        notif = self.Notification.create({
+            'member_id': self.member.id,
+            'notification_type': 'overdue',
+            'subject': 'X',
+            'body': 'Y',
+        })
+        notifs = self.Notification.with_user(circ).search([])
+        self.assertIn(notif, notifs)
 
     def test_user_can_read_notifications(self):
         notif = self.Notification.create({

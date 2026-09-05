@@ -27,6 +27,7 @@ class LibraryNotification(models.Model):
             ('membership_expiring', 'Membership Expiring'),
             ('fine_created', 'Fine Created'),
             ('event_reminder', 'Event Reminder'),
+            ('request_available', 'Requested Book Available'),
         ],
         required=True, index=True,
     )
@@ -43,6 +44,7 @@ class LibraryNotification(models.Model):
             ('library.member', 'Member'),
             ('library.fine', 'Fine'),
             ('library.event', 'Event'),
+            ('library.purchase.request', 'Purchase Request'),
         ],
         string='Related Record',
     )
@@ -65,11 +67,12 @@ class LibraryNotification(models.Model):
 
     @classmethod
     def _queue(cls, env, member, notification_type, subject, body, reference=None, channel='both'):
+        ref = '%s,%s' % (reference._name, reference.id) if reference else False
         existing = env['library.notification'].search_count([
             ('member_id', '=', member.id),
             ('notification_type', '=', notification_type),
-            ('state', '=', 'pending'),
-            ('reference', '=', '%s,%s' % (reference._name, reference.id) if reference else False),
+            ('state', 'in', ('pending', 'sent')),
+            ('reference', '=', ref),
         ])
         if existing:
             return env['library.notification']
@@ -78,34 +81,40 @@ class LibraryNotification(models.Model):
             'notification_type': notification_type,
             'subject': subject,
             'body': body,
-            'reference': '%s,%s' % (reference._name, reference.id) if reference else False,
+            'reference': ref,
             'channel': channel,
         })
 
     def action_send(self):
         for notification in self:
-            if notification.state != 'pending':
-                raise ValidationError('Only pending notifications can be sent.')
-            partner = notification.member_id.partner_id
             try:
+                if notification.state != 'pending':
+                    raise ValidationError('Only pending notifications can be sent.')
+                partner = notification.member_id.partner_id
+                if notification.channel in ('email', 'both') and not partner.email:
+                    raise ValidationError('Member has no email address for delivery.')
                 if notification.channel in ('inbox', 'both'):
                     notification.message_post(
                         body=notification.body,
                         partner_ids=partner.ids,
                         subject=notification.subject,
                     )
-                if notification.channel in ('email', 'both') and partner.email:
+                if notification.channel in ('email', 'both'):
                     template = self.env.ref(
                         'library_notifications.mail_template_notification', raise_if_not_found=False)
-                    if template:
-                        template.send_mail(notification.id, force_send=True)
+                    if not template:
+                        raise ValidationError('Notification email template is missing.')
+                    template.send_mail(notification.id, force_send=False)
                 notification.write({'state': 'sent', 'sent_date': fields.Datetime.now()})
             except Exception as e:
                 notification.write({'state': 'failed', 'failure_reason': str(e)[:500]})
 
     @api.model
-    def _cron_dispatch_pending(self):
-        pending = self.search([('state', '=', 'pending')])
+    def _cron_dispatch_pending(self, limit=100):
+        pending = self.search(
+            [('state', '=', 'pending'), ('scheduled_date', '<=', fields.Date.context_today(self))],
+            order='scheduled_date, id', limit=limit,
+        )
         pending.action_send()
 
     @api.model
@@ -115,24 +124,22 @@ class LibraryNotification(models.Model):
         self._generate_membership_notifications()
         self._generate_fine_notifications()
         self._generate_event_notifications()
+        self._generate_request_notifications()
 
     @api.model
     def _generate_loan_notifications(self):
-        today = fields.Date.context_today(self)
         soon = self.env['library.loan.line'].search([
             ('state', '=', 'issued'),
             ('due_datetime', '>=', fields.Datetime.now()),
             ('due_datetime', '<', fields.Datetime.now() + timedelta(days=3)),
         ])
         for line in soon:
-            due = fields.Datetime.context_timestamp(self, line.due_datetime).date()
-            if (due - today).days <= 3:
-                self._queue(
-                    self.env, line.member_id, 'due_soon',
-                    'Book due soon: %s' % line.book_copy_id.name,
-                    'Please return "%s" by %s.' % (line.book_copy_id.name, line.due_datetime),
-                    reference=line,
-                )
+            self._queue(
+                self.env, line.member_id, 'due_soon',
+                'Book due soon: %s' % line.book_copy_id.name,
+                'Please return "%s" by %s.' % (line.book_copy_id.name, line.due_datetime),
+                reference=line,
+            )
         overdue = self.env['library.loan.line'].search([
             ('state', '=', 'issued'), ('is_overdue', '=', True),
         ])
@@ -150,18 +157,21 @@ class LibraryNotification(models.Model):
         today = fields.Date.context_today(self)
         ready = self.env['library.reservation'].search([('state', '=', 'ready_for_pickup')])
         for res in ready:
-            self._queue(
-                self.env, res.member_id, 'reservation_ready',
-                'Reservation ready: %s' % res.book_id.name,
-                '"%s" is ready for pickup at %s until %s.' % (
-                    res.book_id.name, res.preferred_branch_id.name, res.expiry_date),
-                reference=res,
-            )
             if res.expiry_date and (res.expiry_date - today).days <= 1:
                 self._queue(
                     self.env, res.member_id, 'reservation_expiring',
                     'Reservation expiring: %s' % res.book_id.name,
                     'Your hold on "%s" expires on %s.' % (res.book_id.name, res.expiry_date),
+                    reference=res,
+                )
+            else:
+                pickup = ' at %s' % res.preferred_branch_id.name
+                if res.expiry_date:
+                    pickup += ' until %s' % res.expiry_date
+                self._queue(
+                    self.env, res.member_id, 'reservation_ready',
+                    'Reservation ready: %s' % res.book_id.name,
+                    '"%s" is ready for pickup%s.' % (res.book_id.name, pickup),
                     reference=res,
                 )
 
@@ -196,21 +206,35 @@ class LibraryNotification(models.Model):
 
     @api.model
     def _generate_event_notifications(self):
-        today = fields.Date.context_today(self)
         events = self.env['library.event'].search([
             ('state', '=', 'published'),
             ('start_datetime', '>=', fields.Datetime.now()),
             ('start_datetime', '<', fields.Datetime.now() + timedelta(days=2)),
         ])
-        for event in events:
-            registrations = self.env['library.event.registration'].search([
-                ('event_id', '=', event.id), ('state', '=', 'registered'),
-            ])
-            for reg in registrations:
-                self._queue(
-                    self.env, reg.member_id, 'event_reminder',
-                    'Upcoming event: %s' % event.title,
-                    '"%s" starts on %s at %s.' % (
-                        event.title, event.start_datetime, event.branch_id.name),
-                    reference=event,
-                )
+        registrations = self.env['library.event.registration'].search([
+            ('event_id', 'in', events.ids), ('state', '=', 'registered'),
+        ])
+        for reg in registrations:
+            event = reg.event_id
+            self._queue(
+                self.env, reg.member_id, 'event_reminder',
+                'Upcoming event: %s' % event.title,
+                '"%s" starts on %s at %s.' % (
+                    event.title, event.start_datetime, event.branch_id.name),
+                reference=event,
+            )
+
+    @api.model
+    def _generate_request_notifications(self):
+        requests = self.env['library.purchase.request'].search([
+            ('state', '=', 'done'), ('member_id', '!=', False),
+        ])
+        for purchase_request in requests:
+            member = purchase_request.member_id
+            self._queue(
+                self.env, member, 'request_available',
+                'Requested book available: %s' % purchase_request.book_name,
+                '"%s" you requested is now cataloged and available at %s.' % (
+                    purchase_request.book_name, purchase_request.branch_id.name),
+                reference=purchase_request,
+            )
