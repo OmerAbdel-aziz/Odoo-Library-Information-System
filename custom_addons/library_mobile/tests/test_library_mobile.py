@@ -43,6 +43,12 @@ class TestLibraryMobile(TransactionCase):
             groups='library_base.library_group_circulation',
         )
         cls.circ_user.allowed_branch_ids = [Command.set(cls.branch.ids)]
+        cls.librarian = new_test_user(
+            cls.env,
+            login='mobile_librarian',
+            groups='library_base.library_group_librarian',
+        )
+        cls.librarian.allowed_branch_ids = [Command.set(cls.branch.ids)]
 
     def _create_trip(self, copies=None, **kwargs):
         vals = {'route_id': self.route.id}
@@ -128,6 +134,50 @@ class TestLibraryMobile(TransactionCase):
     def test_bad_coordinates_rejected(self):
         with self.assertRaises(ValidationError):
             self.Stop.create({'name': 'Bad', 'route_id': self.route.id, 'latitude': 100.0})
+
+    def test_reassign_after_prepare_blocked(self):
+        trip = self._create_trip()
+        trip.action_prepare()
+        with self.assertRaises(ValidationError):
+            trip.write({'route_id': self.route.id})
+        with self.assertRaises(ValidationError):
+            trip.write({'line_ids': [(0, 0, {'book_copy_id': self.copy2.id})]})
+
+    def test_duplicate_copy_same_trip_rejected(self):
+        trip = self.Trip.create({'route_id': self.route.id})
+        self.env['library.mobile.trip.line'].create({'trip_id': trip.id, 'book_copy_id': self.copy1.id})
+        self.env['library.mobile.trip.line'].create({'trip_id': trip.id, 'book_copy_id': self.copy1.id})
+        with self.assertRaises(ValidationError):
+            trip.action_prepare()
+
+    def test_unlink_active_blocked(self):
+        trip = self._create_trip()
+        trip.action_prepare()
+        with self.assertRaises(ValidationError):
+            trip.unlink()
+        trip.action_cancel()
+        trip.unlink()
+
+    def test_empty_route_rejected(self):
+        route = self.Route.create({'title': 'Empty', 'unit_id': self.unit.id})
+        trip = self.Trip.create({'route_id': route.id})
+        self.env['library.mobile.trip.line'].create({'trip_id': trip.id, 'book_copy_id': self.copy1.id})
+        with self.assertRaises(ValidationError):
+            trip.action_prepare()
+
+    def test_cross_role_reads(self):
+        units = self.Unit.with_user(self.circ_user).search([])
+        self.assertIn(self.unit, units)
+        routes = self.Route.with_user(self.circ_user).search([])
+        self.assertIn(self.route, routes)
+        trip = self._create_trip()
+        trips = self.Trip.with_user(self.librarian).search([])
+        self.assertIn(trip, trips)
+
+    def test_branch_snapshot_kept(self):
+        branch2 = self.Branch.create({'name': 'Other Library', 'code': 'LIB02'})
+        self.unit.home_branch_id = branch2
+        self.assertEqual(self.route.branch_id, self.branch)
 
     def test_user_can_read_trips(self):
         trip = self._create_trip()

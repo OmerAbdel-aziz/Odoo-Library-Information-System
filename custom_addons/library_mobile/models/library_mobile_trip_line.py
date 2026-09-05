@@ -6,6 +6,7 @@ class LibraryMobileTripLine(models.Model):
     _description = 'Library Mobile Trip Line'
     _order = 'trip_id, id'
     _rec_names_search = ['book_copy_id.barcode']
+    _check_company_auto = True
 
     trip_id = fields.Many2one('library.mobile.trip', required=True, ondelete='cascade', index=True)
     book_copy_id = fields.Many2one(

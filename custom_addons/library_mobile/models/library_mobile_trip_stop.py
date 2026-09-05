@@ -7,15 +7,16 @@ class LibraryMobileTripStop(models.Model):
     _description = 'Library Mobile Trip Stop Visit'
     _order = 'trip_id, sequence, id'
     _rec_names_search = ['stop_id.name']
+    _check_company_auto = True
 
     trip_id = fields.Many2one('library.mobile.trip', required=True, ondelete='cascade', index=True)
     stop_id = fields.Many2one(
         'library.mobile.stop', string='Stop', required=True,
-        ondelete='restrict', index=True,
+        ondelete='restrict', index=True, check_company=True,
     )
     sequence = fields.Integer(related='stop_id.sequence', store=True, readonly=True)
-    visited = fields.Boolean(default=False)
-    visited_at = fields.Datetime(string='Visited At')
+    visited = fields.Boolean(default=False, readonly=True)
+    visited_at = fields.Datetime(string='Visited At', readonly=True)
     company_id = fields.Many2one(related='trip_id.company_id', store=True, readonly=True)
 
     def action_visit(self):

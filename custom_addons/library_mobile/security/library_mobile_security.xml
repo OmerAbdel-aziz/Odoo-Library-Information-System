@@ -35,7 +35,7 @@
         <record id="library_mobile_trip_user_rule" model="ir.rule">
             <field name="name">Library Mobile Trip: assigned branches</field>
             <field name="model_id" ref="model_library_mobile_trip"/>
-            <field name="domain_force">[('branch_id', 'in', user.allowed_branch_ids.ids)]</field>
+            <field name="domain_force">['|', ('branch_id', 'in', user.allowed_branch_ids.ids), ('branch_id.manager_id', '=', user.id)]</field>
             <field name="groups" eval="[(4, ref('library_base.library_group_user'))]"/>
         </record>
         <record id="library_mobile_unit_user_rule" model="ir.rule">
@@ -47,7 +47,7 @@
         <record id="library_mobile_route_user_rule" model="ir.rule">
             <field name="name">Library Mobile Route: assigned branches</field>
             <field name="model_id" ref="model_library_mobile_route"/>
-            <field name="domain_force">[('branch_id', 'in', user.allowed_branch_ids.ids)]</field>
+            <field name="domain_force">['|', ('branch_id', 'in', user.allowed_branch_ids.ids), ('branch_id.manager_id', '=', user.id)]</field>
             <field name="groups" eval="[(4, ref('library_base.library_group_user'))]"/>
         </record>
         <record id="library_mobile_trip_line_user_rule" model="ir.rule">

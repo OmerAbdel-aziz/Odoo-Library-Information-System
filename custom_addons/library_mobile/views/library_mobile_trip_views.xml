@@ -57,8 +57,9 @@
                                 <list string="Stops">
                                     <field name="sequence"/>
                                     <field name="stop_id"/>
-                                    <field name="visited"/>
+                                    <field name="visited" readonly="1"/>
                                     <field name="visited_at" readonly="1"/>
+                                    <button name="action_visit" type="object" string="Visit" icon="fa-check"/>
                                 </list>
                             </field>
                         </page>

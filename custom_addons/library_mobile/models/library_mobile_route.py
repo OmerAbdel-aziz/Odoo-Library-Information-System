@@ -14,7 +14,10 @@ class LibraryMobileRoute(models.Model):
         'library.mobile.unit', string='Unit', required=True,
         ondelete='restrict', index=True, check_company=True,
     )
-    branch_id = fields.Many2one(related='unit_id.home_branch_id', store=True, readonly=True)
+    branch_id = fields.Many2one(
+        'library.branch', string='Branch',
+        ondelete='restrict', index=True, check_company=True, readonly=True,
+    )
     stop_ids = fields.One2many('library.mobile.stop', 'route_id', string='Stops')
     stop_count = fields.Integer(compute='_compute_stop_count', store=True)
     active = fields.Boolean(default=True)
@@ -25,6 +28,10 @@ class LibraryMobileRoute(models.Model):
         for vals in vals_list:
             if not vals.get('name'):
                 vals['name'] = self.env['ir.sequence'].next_by_code('library.mobile.route') or '/'
+            if not vals.get('branch_id') and vals.get('unit_id'):
+                unit = self.env['library.mobile.unit'].browse(vals['unit_id'])
+                if unit.home_branch_id:
+                    vals['branch_id'] = unit.home_branch_id.id
         return super().create(vals_list)
 
     @api.depends('stop_ids')
