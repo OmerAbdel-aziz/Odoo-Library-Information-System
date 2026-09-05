@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <menuitem id="library_menu_root" name="Library" sequence="210" groups="library_group_user"/>
+    <menuitem id="library_menu_operations" name="Operations" parent="library_menu_root" sequence="10" groups="library_group_user"/>
+    <menuitem id="library_menu_configuration" name="Configuration" parent="library_menu_root" sequence="100" groups="library_group_branch_manager"/>
+    <menuitem id="library_menu_locations" name="Locations" parent="library_menu_configuration" sequence="10" groups="library_group_branch_manager"/>
+</odoo>

@@ -1,0 +1,15 @@
+id,name,model_id/id,group_id/id,perm_read,perm_write,perm_create,perm_unlink
+access_library_weekday_user,library.weekday.user,model_library_weekday,library_group_user,1,0,0,0
+access_library_weekday_admin,library.weekday.admin,model_library_weekday,library_group_administrator,1,1,1,1
+access_library_branch_user,library.branch.user,model_library_branch,library_group_user,1,0,0,0
+access_library_branch_branch_manager,library.branch.branch.manager,model_library_branch,library_group_branch_manager,1,1,0,0
+access_library_branch_library_manager,library.branch.library.manager,model_library_branch,library_group_library_manager,1,1,1,1
+access_library_floor_user,library.floor.user,model_library_floor,library_group_user,1,0,0,0
+access_library_floor_branch_manager,library.floor.branch.manager,model_library_floor,library_group_branch_manager,1,1,1,1
+access_library_floor_library_manager,library.floor.library.manager,model_library_floor,library_group_library_manager,1,1,1,1
+access_library_section_user,library.section.user,model_library_section,library_group_user,1,0,0,0
+access_library_section_branch_manager,library.section.branch.manager,model_library_section,library_group_branch_manager,1,1,1,1
+access_library_section_library_manager,library.section.library.manager,model_library_section,library_group_library_manager,1,1,1,1
+access_library_shelf_user,library.shelf.user,model_library_shelf,library_group_user,1,0,0,0
+access_library_shelf_branch_manager,library.shelf.branch.manager,model_library_shelf,library_group_branch_manager,1,1,1,1
+access_library_shelf_library_manager,library.shelf.library.manager,model_library_shelf,library_group_library_manager,1,1,1,1

@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="library_branch_view_list" model="ir.ui.view">
+        <field name="name">library.branch.list</field>
+        <field name="model">library.branch</field>
+        <field name="arch" type="xml">
+            <list string="Library Branches" multi_edit="1">
+                <field name="code"/>
+                <field name="name"/>
+                <field name="city"/>
+                <field name="manager_id" widget="many2one_avatar_user"/>
+                <field name="phone" optional="show"/>
+                <field name="email" optional="show"/>
+                <field name="opening_time" widget="float_time" optional="hide"/>
+                <field name="closing_time" widget="float_time" optional="hide"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+                <field name="active" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="library_branch_view_form" model="ir.ui.view">
+        <field name="name">library.branch.form</field>
+        <field name="model">library.branch</field>
+        <field name="arch" type="xml">
+            <form string="Library Branch">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_floors" type="object" class="oe_stat_button" icon="fa-building-o">
+                            <field name="floor_count" widget="statinfo" string="Floors"/>
+                        </button>
+                        <button name="action_view_sections" type="object" class="oe_stat_button" icon="fa-th-large">
+                            <field name="section_count" widget="statinfo" string="Sections"/>
+                        </button>
+                        <button name="action_view_shelves" type="object" class="oe_stat_button" icon="fa-archive">
+                            <field name="shelf_count" widget="statinfo" string="Shelves"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Main Library"/></h1>
+                    </div>
+                    <group>
+                        <group string="Branch">
+                            <field name="active" invisible="1"/>
+                            <field name="code" placeholder="e.g. LIB01"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="manager_id" widget="many2one_avatar_user"/>
+                            <field name="working_day_ids" widget="many2many_tags" options="{'no_create': True}"/>
+                            <label for="opening_time" string="Working Hours"/>
+                            <div class="o_row">
+                                <field name="opening_time" widget="float_time" class="oe_inline"/>
+                                <span>-</span>
+                                <field name="closing_time" widget="float_time" class="oe_inline"/>
+                            </div>
+                        </group>
+                        <group string="Contact">
+                            <field name="phone"/>
+                            <field name="email" widget="email"/>
+                            <field name="street"/>
+                            <field name="city"/>
+                            <field name="state_id"/>
+                            <field name="country_id"/>
+                        </group>
+                    </group>
+                    <group string="Offline Map Coordinates">
+                        <group>
+                            <field name="latitude"/>
+                            <field name="longitude"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="library_branch_view_search" model="ir.ui.view">
+        <field name="name">library.branch.search</field>
+        <field name="model">library.branch</field>
+        <field name="arch" type="xml">
+            <search string="Library Branches">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="city"/>
+                <field name="manager_id"/>
+                <filter name="active" string="Active" domain="[('active', '=', True)]"/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter name="group_by_city" string="City" context="{'group_by': 'city'}"/>
+                    <filter name="group_by_manager" string="Manager" context="{'group_by': 'manager_id'}"/>
+                    <filter name="group_by_company" string="Company" context="{'group_by': 'company_id'}" groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="library_branch_action" model="ir.actions.act_window">
+        <field name="name">Branches</field>
+        <field name="res_model">library.branch</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create a library branch</p>
+            <p>Branches are the top-level physical locations for catalog, circulation, inventory, maps, and reports.</p>
+        </field>
+    </record>
+
+    <menuitem id="library_branch_menu" name="Branches" parent="library_menu_operations" action="library_branch_action" sequence="10" groups="library_group_user"/>
+    <menuitem id="library_branch_config_menu" name="Branches" parent="library_menu_locations" action="library_branch_action" sequence="10" groups="library_group_branch_manager"/>
+</odoo>

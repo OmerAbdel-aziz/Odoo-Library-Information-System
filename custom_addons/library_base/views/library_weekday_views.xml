@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="library_weekday_view_list" model="ir.ui.view">
+        <field name="name">library.weekday.list</field>
+        <field name="model">library.weekday</field>
+        <field name="arch" type="xml">
+            <list string="Working Days" editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="code"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="library_weekday_action" model="ir.actions.act_window">
+        <field name="name">Working Days</field>
+        <field name="res_model">library.weekday</field>
+        <field name="view_mode">list</field>
+    </record>
+
+    <menuitem id="library_weekday_menu" name="Working Days" parent="library_menu_configuration" action="library_weekday_action" sequence="90" groups="library_group_administrator"/>
+</odoo>

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="library_shelf_view_list" model="ir.ui.view">
+        <field name="name">library.shelf.list</field>
+        <field name="model">library.shelf</field>
+        <field name="arch" type="xml">
+            <list string="Library Shelves" multi_edit="1">
+                <field name="sequence" widget="handle"/>
+                <field name="code"/>
+                <field name="name"/>
+                <field name="branch_id"/>
+                <field name="floor_id"/>
+                <field name="section_id"/>
+                <field name="active" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="library_shelf_view_form" model="ir.ui.view">
+        <field name="name">library.shelf.form</field>
+        <field name="model">library.shelf</field>
+        <field name="arch" type="xml">
+            <form string="Library Shelf">
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Shelf CS-04"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="active" invisible="1"/>
+                            <field name="code" placeholder="e.g. CS-04"/>
+                            <field name="sequence"/>
+                            <field name="section_id"/>
+                            <field name="floor_id"/>
+                            <field name="branch_id"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="library_shelf_view_search" model="ir.ui.view">
+        <field name="name">library.shelf.search</field>
+        <field name="model">library.shelf</field>
+        <field name="arch" type="xml">
+            <search string="Library Shelves">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="branch_id"/>
+                <field name="floor_id"/>
+                <field name="section_id"/>
+                <filter name="active" string="Active" domain="[('active', '=', True)]"/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter name="group_by_branch" string="Branch" context="{'group_by': 'branch_id'}"/>
+                    <filter name="group_by_floor" string="Floor" context="{'group_by': 'floor_id'}"/>
+                    <filter name="group_by_section" string="Section" context="{'group_by': 'section_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="library_shelf_action" model="ir.actions.act_window">
+        <field name="name">Shelves</field>
+        <field name="res_model">library.shelf</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_group_by_branch': 1}</field>
+    </record>
+
+    <menuitem id="library_shelf_menu" name="Shelves" parent="library_menu_locations" action="library_shelf_action" sequence="40" groups="library_group_branch_manager"/>
+</odoo>

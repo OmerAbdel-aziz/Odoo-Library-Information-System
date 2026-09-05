@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record model="res.groups.privilege" id="res_groups_privilege_library">
+        <field name="name">Library</field>
+        <field name="sequence">35</field>
+        <field name="category_id" ref="base.module_category_services"/>
+    </record>
+
+    <record id="library_group_user" model="res.groups">
+        <field name="name">User</field>
+        <field name="sequence">10</field>
+        <field name="privilege_id" ref="res_groups_privilege_library"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+    <record id="library_group_librarian" model="res.groups">
+        <field name="name">Librarian</field>
+        <field name="sequence">20</field>
+        <field name="privilege_id" ref="res_groups_privilege_library"/>
+        <field name="implied_ids" eval="[(4, ref('library_group_user'))]"/>
+    </record>
+    <record id="library_group_circulation" model="res.groups">
+        <field name="name">Circulation Officer</field>
+        <field name="sequence">30</field>
+        <field name="privilege_id" ref="res_groups_privilege_library"/>
+        <field name="implied_ids" eval="[(4, ref('library_group_user'))]"/>
+    </record>
+    <record id="library_group_cataloger" model="res.groups">
+        <field name="name">Cataloger</field>
+        <field name="sequence">40</field>
+        <field name="privilege_id" ref="res_groups_privilege_library"/>
+        <field name="implied_ids" eval="[(4, ref('library_group_user'))]"/>
+    </record>
+    <record id="library_group_acquisition" model="res.groups">
+        <field name="name">Acquisition Officer</field>
+        <field name="sequence">50</field>
+        <field name="privilege_id" ref="res_groups_privilege_library"/>
+        <field name="implied_ids" eval="[(4, ref('library_group_user'))]"/>
+    </record>
+    <record id="library_group_inventory" model="res.groups">
+        <field name="name">Inventory Officer</field>
+        <field name="sequence">60</field>
+        <field name="privilege_id" ref="res_groups_privilege_library"/>
+        <field name="implied_ids" eval="[(4, ref('library_group_user'))]"/>
+    </record>
+    <record id="library_group_branch_manager" model="res.groups">
+        <field name="name">Branch Manager</field>
+        <field name="sequence">70</field>
+        <field name="privilege_id" ref="res_groups_privilege_library"/>
+        <field name="implied_ids" eval="[(4, ref('library_group_librarian'))]"/>
+    </record>
+    <record id="library_group_library_manager" model="res.groups">
+        <field name="name">Library Manager</field>
+        <field name="sequence">80</field>
+        <field name="privilege_id" ref="res_groups_privilege_library"/>
+        <field name="implied_ids" eval="[(4, ref('library_group_branch_manager'))]"/>
+    </record>
+    <record id="library_group_map_administrator" model="res.groups">
+        <field name="name">Map Administrator</field>
+        <field name="sequence">90</field>
+        <field name="privilege_id" ref="res_groups_privilege_library"/>
+        <field name="implied_ids" eval="[(4, ref('library_group_user'))]"/>
+    </record>
+    <record id="library_group_administrator" model="res.groups">
+        <field name="name">Administrator</field>
+        <field name="sequence">100</field>
+        <field name="privilege_id" ref="res_groups_privilege_library"/>
+        <field name="implied_ids" eval="[(4, ref('library_group_library_manager')), (4, ref('library_group_map_administrator'))]"/>
+        <field name="user_ids" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+    </record>
+
+    <data noupdate="1">
+        <record id="library_branch_company_rule" model="ir.rule">
+            <field name="name">Library Branch: multi-company</field>
+            <field name="model_id" ref="model_library_branch"/>
+            <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        </record>
+        <record id="library_floor_company_rule" model="ir.rule">
+            <field name="name">Library Floor: multi-company</field>
+            <field name="model_id" ref="model_library_floor"/>
+            <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        </record>
+        <record id="library_section_company_rule" model="ir.rule">
+            <field name="name">Library Section: multi-company</field>
+            <field name="model_id" ref="model_library_section"/>
+            <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        </record>
+        <record id="library_shelf_company_rule" model="ir.rule">
+            <field name="name">Library Shelf: multi-company</field>
+            <field name="model_id" ref="model_library_shelf"/>
+            <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        </record>
+
+        <record id="library_branch_user_rule" model="ir.rule">
+            <field name="name">Library Branch: assigned branches</field>
+            <field name="model_id" ref="model_library_branch"/>
+            <field name="domain_force">['|', ('id', 'in', user.allowed_branch_ids.ids), ('manager_id', '=', user.id)]</field>
+            <field name="groups" eval="[(4, ref('library_group_user'))]"/>
+        </record>
+        <record id="library_floor_user_rule" model="ir.rule">
+            <field name="name">Library Floor: assigned branches</field>
+            <field name="model_id" ref="model_library_floor"/>
+            <field name="domain_force">['|', ('branch_id', 'in', user.allowed_branch_ids.ids), ('branch_id.manager_id', '=', user.id)]</field>
+            <field name="groups" eval="[(4, ref('library_group_user'))]"/>
+        </record>
+        <record id="library_section_user_rule" model="ir.rule">
+            <field name="name">Library Section: assigned branches</field>
+            <field name="model_id" ref="model_library_section"/>
+            <field name="domain_force">['|', ('branch_id', 'in', user.allowed_branch_ids.ids), ('branch_id.manager_id', '=', user.id)]</field>
+            <field name="groups" eval="[(4, ref('library_group_user'))]"/>
+        </record>
+        <record id="library_shelf_user_rule" model="ir.rule">
+            <field name="name">Library Shelf: assigned branches</field>
+            <field name="model_id" ref="model_library_shelf"/>
+            <field name="domain_force">['|', ('branch_id', 'in', user.allowed_branch_ids.ids), ('branch_id.manager_id', '=', user.id)]</field>
+            <field name="groups" eval="[(4, ref('library_group_user'))]"/>
+        </record>
+
+        <record id="library_branch_manager_rule" model="ir.rule">
+            <field name="name">Library Branch: managers see all branches</field>
+            <field name="model_id" ref="model_library_branch"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('library_group_library_manager'))]"/>
+        </record>
+        <record id="library_floor_manager_rule" model="ir.rule">
+            <field name="name">Library Floor: managers see all branches</field>
+            <field name="model_id" ref="model_library_floor"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('library_group_library_manager'))]"/>
+        </record>
+        <record id="library_section_manager_rule" model="ir.rule">
+            <field name="name">Library Section: managers see all branches</field>
+            <field name="model_id" ref="model_library_section"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('library_group_library_manager'))]"/>
+        </record>
+        <record id="library_shelf_manager_rule" model="ir.rule">
+            <field name="name">Library Shelf: managers see all branches</field>
+            <field name="model_id" ref="model_library_shelf"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('library_group_library_manager'))]"/>
+        </record>
+    </data>
+</odoo>

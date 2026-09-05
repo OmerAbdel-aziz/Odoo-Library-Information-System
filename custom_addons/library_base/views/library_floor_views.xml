@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="library_floor_view_list" model="ir.ui.view">
+        <field name="name">library.floor.list</field>
+        <field name="model">library.floor</field>
+        <field name="arch" type="xml">
+            <list string="Library Floors" multi_edit="1">
+                <field name="sequence" widget="handle"/>
+                <field name="code"/>
+                <field name="name"/>
+                <field name="branch_id"/>
+                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+                <field name="active" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="library_floor_view_form" model="ir.ui.view">
+        <field name="name">library.floor.form</field>
+        <field name="model">library.floor</field>
+        <field name="arch" type="xml">
+            <form string="Library Floor">
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Ground Floor"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="active" invisible="1"/>
+                            <field name="code" placeholder="e.g. GF"/>
+                            <field name="sequence"/>
+                            <field name="branch_id"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Sections" name="sections">
+                            <field name="section_ids" context="{'default_floor_id': id}">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="code"/>
+                                    <field name="name"/>
+                                    <field name="section_type"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="library_floor_view_search" model="ir.ui.view">
+        <field name="name">library.floor.search</field>
+        <field name="model">library.floor</field>
+        <field name="arch" type="xml">
+            <search string="Library Floors">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="branch_id"/>
+                <filter name="active" string="Active" domain="[('active', '=', True)]"/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter name="group_by_branch" string="Branch" context="{'group_by': 'branch_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="library_floor_action" model="ir.actions.act_window">
+        <field name="name">Floors</field>
+        <field name="res_model">library.floor</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_group_by_branch': 1}</field>
+    </record>
+
+    <menuitem id="library_floor_menu" name="Floors" parent="library_menu_locations" action="library_floor_action" sequence="20" groups="library_group_branch_manager"/>
+</odoo>
