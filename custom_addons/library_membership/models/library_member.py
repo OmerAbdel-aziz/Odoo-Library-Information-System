@@ -116,9 +116,7 @@ class LibraryMember(models.Model):
     def action_activate(self):
         for member in self:
             if member.status in ('draft', 'suspended', 'blocked'):
-                member.blocked = False
-                member.block_reason = False
-                member.status = 'active'
+                member.write({'blocked': False, 'block_reason': False, 'status': 'active'})
 
     def action_suspend(self):
         for member in self:
@@ -128,8 +126,7 @@ class LibraryMember(models.Model):
     def action_block(self):
         for member in self:
             if member.status in ('active', 'suspended'):
-                member.status = 'blocked'
-                member.blocked = True
+                member.write({'blocked': True, 'status': 'blocked'})
 
     def action_cancel(self):
         for member in self:
