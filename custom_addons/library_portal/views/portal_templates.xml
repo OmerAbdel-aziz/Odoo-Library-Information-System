@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <template id="portal_my_home_library" inherit_id="portal.portal_my_home" name="Library Portal Entry">
+        <xpath expr="//div[@id='portal_common_category']" position="inside">
+            <t t-call="portal.portal_docs_entry">
+                <t t-set="title">Library</t>
+                <t t-set="text">Catalog, loans, fines, reservations and events</t>
+                <t t-set="url" t-value="'/my/library'"/>
+            </t>
+        </xpath>
+    </template>
+
+    <template id="portal_no_membership" name="No Library Membership">
+        <t t-call="portal.portal_layout">
+            <div class="alert alert-warning">No active library membership is linked to your account.</div>
+        </t>
+    </template>
+
+    <template id="portal_library_home" name="Library Dashboard">
+        <t t-call="portal.portal_layout">
+            <h3>My Library</h3>
+            <p>Member <t t-out="member.member_number"/> — <t t-out="member.membership_plan_id.name"/> (expires <t t-out="member.expiry_date"/>)</p>
+            <ul>
+                <li>Active loans: <t t-out="len(active_loans)"/> (<t t-out="len(overdue_loans)"/> overdue)</li>
+                <li>Open fines: <t t-out="len(open_fines)"/> — total <t t-out="fines_total"/></li>
+                <li>Open reservations: <t t-out="len(reservations)"/></li>
+            </ul>
+            <p>
+                <a href="/my/library/books">Catalog</a> |
+                <a href="/my/library/loans">Loans</a> |
+                <a href="/my/library/fines">Fines</a> |
+                <a href="/my/library/reservations">Reservations</a> |
+                <a href="/my/library/events">Events</a>
+            </p>
+        </t>
+    </template>
+
+    <template id="portal_library_books" name="Library Catalog">
+        <t t-call="portal.portal_layout">
+            <h3>Catalog</h3>
+            <form action="/my/library/books" method="get">
+                <input type="text" name="q" t-att-value="q" placeholder="Title, ISBN or author"/>
+                <button type="submit">Search</button>
+            </form>
+            <ul>
+                <li t-foreach="books" t-as="book">
+                    <a t-att-href="'/my/library/books/%s' % book.id"><t t-out="book.display_name"/></a>
+                </li>
+            </ul>
+        </t>
+    </template>
+
+    <template id="portal_library_book_detail" name="Book Detail">
+        <t t-call="portal.portal_layout">
+            <h3><t t-out="book.display_name"/></h3>
+            <div t-if="error" class="alert alert-danger"><t t-out="error"/></div>
+            <ul>
+                <li t-foreach="availability.items()" t-as="item">
+                    <t t-out="item[0]"/>: <t t-out="item[1]['available']"/> / <t t-out="item[1]['total']"/> available
+                </li>
+            </ul>
+            <form t-att-action="'/my/library/books/%s/reserve' % book.id" method="post">
+                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                <button type="submit">Reserve at my branch</button>
+            </form>
+        </t>
+    </template>
+
+    <template id="portal_library_loans" name="My Loans">
+        <t t-call="portal.portal_layout">
+            <h3>My Loans</h3>
+            <div t-if="error" class="alert alert-danger"><t t-out="error"/></div>
+            <ul>
+                <li t-foreach="lines" t-as="line">
+                    <t t-out="line.book_copy_id.name"/> — due <t t-out="line.due_datetime"/>
+                    (renewals: <t t-out="line.renewal_count"/>)
+                    <form t-if="line.state == 'issued'" t-att-action="'/my/library/loans/renew/%s' % line.id" method="post">
+                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                        <button type="submit">Renew</button>
+                    </form>
+                </li>
+            </ul>
+        </t>
+    </template>
+
+    <template id="portal_library_fines" name="My Fines">
+        <t t-call="portal.portal_layout">
+            <h3>My Fines</h3>
+            <ul>
+                <li t-foreach="fines" t-as="fine">
+                    <t t-out="fine.name"/> — <t t-out="fine.fine_type"/>:
+                    <t t-out="fine.remaining_amount"/> (<t t-out="fine.state"/>)
+                </li>
+            </ul>
+        </t>
+    </template>
+
+    <template id="portal_library_reservations" name="My Reservations">
+        <t t-call="portal.portal_layout">
+            <h3>My Reservations</h3>
+            <ul>
+                <li t-foreach="reservations" t-as="res">
+                    <t t-out="res.book_id.name"/> — <t t-out="res.state"/>
+                    <form t-if="res.state in ('waiting', 'allocated', 'ready_for_pickup')" t-att-action="'/my/library/reservations/cancel/%s' % res.id" method="post">
+                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                        <button type="submit">Cancel</button>
+                    </form>
+                </li>
+            </ul>
+        </t>
+    </template>
+
+    <template id="portal_library_events" name="Library Events">
+        <t t-call="portal.portal_layout">
+            <h3>Events</h3>
+            <div t-if="error" class="alert alert-danger"><t t-out="error"/></div>
+            <ul>
+                <li t-foreach="events" t-as="event">
+                    <t t-out="event.title"/> — <t t-out="event.start_datetime"/>
+                    (seats left: <t t-out="event.seats_left"/>)
+                    <form t-att-action="'/my/library/events/register/%s' % event.id" method="post">
+                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                        <button type="submit">Register</button>
+                    </form>
+                </li>
+            </ul>
+        </t>
+    </template>
+</odoo>
