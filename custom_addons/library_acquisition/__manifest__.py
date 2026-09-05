@@ -9,7 +9,7 @@ Library Acquisition
 Librarian/member purchase requests, approval, vendor purchase orders,
 receiving, cataloging, copy generation with barcodes and shelf assignment.
 """,
-    'depends': ['library_base', 'library_catalog', 'purchase'],
+    'depends': ['library_base', 'library_catalog', 'library_inventory', 'purchase'],
     'data': [
         'security/library_acquisition_security.xml',
         'security/ir.model.access.csv',

@@ -51,6 +51,22 @@ class TestLibraryAcquisition(TransactionCase):
         vals.update(kwargs)
         return self.Request.create(vals)
 
+    def _validate_receipt(self, request):
+        picking = request.purchase_order_id.picking_ids.filtered(
+            lambda p: p.picking_type_code == 'incoming'
+        )
+        picking.action_assign()
+        lot = self.env['stock.lot'].create({
+            'name': 'TEST-LOT-001',
+            'product_id': request.product_id.id,
+            'company_id': request.company_id.id,
+        })
+        for line in picking.move_line_ids:
+            line.quantity = line.quantity_product_uom
+            line.lot_id = lot
+        picking.button_validate()
+        return picking
+
     def test_request_auto_generates_name(self):
         request = self._create_request()
         self.assertTrue(request.name)
@@ -97,16 +113,20 @@ class TestLibraryAcquisition(TransactionCase):
             request.action_receive()
 
     def test_full_flow_catalogs_copies(self):
-        request = self._create_request()
+        request = self._create_request(author='Test Author', isbn='9780132350884')
         request.action_submit()
         request.action_approve()
         request.action_create_po()
+        self._validate_receipt(request)
         request.action_receive()
         self.assertEqual(request.state, 'received')
         request.action_catalog()
         self.assertEqual(request.state, 'done')
         self.assertTrue(request.book_id)
         self.assertEqual(request.book_id.name, 'New Acquisition')
+        self.assertEqual(request.book_id.author_ids.name, 'Test Author')
+        self.assertEqual(request.book_id.isbn_13, '9780132350884')
+        self.assertEqual(request.book_id.product_id, request.product_id)
         copies = self.Copy.search([('book_id', '=', request.book_id.id)])
         self.assertEqual(len(copies), 2)
         for copy in copies:
@@ -114,16 +134,35 @@ class TestLibraryAcquisition(TransactionCase):
             self.assertEqual(copy.branch_id, self.branch)
             self.assertEqual(copy.shelf_id, self.shelf)
             self.assertEqual(copy.state, 'available')
+            self.assertTrue(copy.stock_lot_id)
+            self.assertEqual(copy.acquisition_cost, 12.5)
 
     def test_catalog_twice_rejected(self):
         request = self._create_request()
         request.action_submit()
         request.action_approve()
         request.action_create_po()
+        self._validate_receipt(request)
         request.action_receive()
         request.action_catalog()
         with self.assertRaises(ValidationError):
             request.action_catalog()
+
+    def test_shelf_branch_mismatch_rejected(self):
+        other_branch = self.Branch.create({'name': 'Other Library', 'code': 'LIB02'})
+        other_floor = self.env['library.floor'].create({'name': 'First', 'branch_id': other_branch.id})
+        other_section = self.env['library.section'].create({'name': 'Kids', 'floor_id': other_floor.id})
+        other_shelf = self.env['library.shelf'].create({'name': 'Shelf B', 'code': 'B', 'section_id': other_section.id})
+        with self.assertRaises(ValidationError):
+            self._create_request(shelf_id=other_shelf.id)
+
+    def test_locked_after_ordered(self):
+        request = self._create_request()
+        request.action_submit()
+        request.action_approve()
+        request.action_create_po()
+        with self.assertRaises(ValidationError):
+            request.quantity = 10
 
     def test_cancel_ordered_rejected(self):
         request = self._create_request()

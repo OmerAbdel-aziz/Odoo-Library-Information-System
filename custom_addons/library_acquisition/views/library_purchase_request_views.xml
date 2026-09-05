@@ -10,7 +10,7 @@
                 <field name="member_id" optional="show"/>
                 <field name="branch_id" optional="show"/>
                 <field name="quantity"/>
-                <field name="estimated_cost" widget="monetary" optional="show"/>
+                <field name="estimated_cost" optional="show"/>
                 <field name="request_date"/>
                 <field name="state" widget="badge" decoration-success="state == 'done'" decoration-info="state in ('approved', 'ordered')" decoration-warning="state in ('submitted', 'received')" decoration-muted="state == 'cancelled'"/>
                 <field name="active" column_invisible="1"/>
@@ -51,7 +51,7 @@
                         </group>
                         <group string="Fulfillment">
                             <field name="branch_id"/>
-                            <field name="shelf_id"/>
+                            <field name="shelf_id" domain="[('branch_id', '=', branch_id)]"/>
                             <field name="vendor_id"/>
                             <field name="purchase_order_id"/>
                             <field name="book_id"/>
