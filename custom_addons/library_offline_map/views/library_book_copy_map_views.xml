@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="library_book_copy_view_form_map" model="ir.ui.view">
+        <field name="name">library.book.copy.form.map</field>
+        <field name="model">library.book.copy</field>
+        <field name="inherit_id" ref="library_catalog.library_book_copy_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="inside">
+                <group string="Indoor Map">
+                    <button name="action_show_on_map" type="object" string="Show on Map" class="oe_highlight"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

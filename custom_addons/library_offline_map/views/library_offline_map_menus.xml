@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <menuitem id="library_offline_map_menu" name="Maps" parent="library_base.library_menu_operations" sequence="60" groups="library_base.library_group_user"/>
+    <menuitem id="library_map_settings_menu" name="Map Settings" parent="library_offline_map_menu" action="library_map_settings_action" sequence="10" groups="library_base.library_group_map_administrator"/>
+</odoo>

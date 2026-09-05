@@ -1,0 +1,32 @@
+.lib-indoor-map {
+    .lib-floor-svg {
+        width: 100%;
+        max-height: 70vh;
+        border: 1px solid var(--border-color, #dee2e6);
+        background: #f8f9fa;
+    }
+    .lib-floor-bg {
+        fill: #ffffff;
+        stroke: #adb5bd;
+    }
+    .lib-shelf rect {
+        fill: #b6d7f2;
+        stroke: #2f7fc4;
+    }
+    .lib-shelf text {
+        font-size: 3px;
+        fill: #1a3a5c;
+    }
+    .lib-shelf-unplaced rect {
+        fill: #e9ecef;
+        stroke: #adb5bd;
+        stroke-dasharray: 1.5;
+    }
+    .lib-shelf-highlight rect {
+        fill: #ffd66e;
+        stroke: #b8860b;
+        stroke-width: 0.8;
+    }
+    .lib-legend-highlight { color: #b8860b; font-weight: bold; }
+    .lib-legend-unplaced { color: #6c757d; }
+}

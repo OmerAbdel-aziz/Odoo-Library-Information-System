@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="library_offline_map.IndoorMap">
+        <div class="lib-indoor-map p-3">
+            <t t-if="state.error">
+                <div class="alert alert-warning" role="alert"><t t-esc="state.error"/></div>
+            </t>
+            <t t-elif="!state.floor">
+                <div class="text-center text-muted">Loading floor plan…</div>
+            </t>
+            <t t-else="">
+                <h3><t t-esc="state.floor.name"/></h3>
+                <svg viewBox="0 0 100 100" class="lib-floor-svg" preserveAspectRatio="xMidYMid meet">
+                    <rect x="0" y="0" width="100" height="100" class="lib-floor-bg"/>
+                    <t t-foreach="state.shelves" t-as="shelf" t-key="shelf.id">
+                        <g t-att-class="shelfClass(shelf)">
+                            <rect t-att-x="shelf.x" t-att-y="shelf.y"
+                                  t-att-width="shelf.width" t-att-height="shelf.height">
+                                <title><t t-esc="shelf.name"/></title>
+                            </rect>
+                            <text t-att-x="shelf.x + shelf.width / 2" t-att-y="shelf.y + shelf.height / 2"
+                                  text-anchor="middle" dominant-baseline="middle">
+                                <t t-esc="shelf.code || shelf.name"/>
+                            </text>
+                        </g>
+                    </t>
+                </svg>
+                <div class="mt-2 text-muted">
+                    <span class="lib-legend-highlight">Highlighted</span> shelf requested •
+                    <span class="lib-legend-unplaced">Unplaced</span> shelves need coordinates
+                </div>
+            </t>
+        </div>
+    </t>
+</templates>

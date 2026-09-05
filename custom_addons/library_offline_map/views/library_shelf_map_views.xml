@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="library_shelf_view_form_map" model="ir.ui.view">
+        <field name="name">library.shelf.form.map</field>
+        <field name="model">library.shelf</field>
+        <field name="inherit_id" ref="library_base.library_shelf_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="inside">
+                <group string="Indoor Map Position (%)">
+                    <group>
+                        <field name="map_x"/>
+                        <field name="map_y"/>
+                        <field name="map_placed"/>
+                    </group>
+                    <group>
+                        <field name="map_width"/>
+                        <field name="map_height"/>
+                    </group>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>
