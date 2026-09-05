@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo noupdate="1">
+    <record id="seq_library_member" model="ir.sequence">
+        <field name="name">Library Member</field>
+        <field name="code">library.member</field>
+        <field name="prefix">MEM</field>
+        <field name="padding">6</field>
+        <field name="company_id" eval="False"/>
+    </record>
+    <record id="seq_library_member_barcode" model="ir.sequence">
+        <field name="name">Library Member Barcode</field>
+        <field name="code">library.member.barcode</field>
+        <field name="prefix">LM</field>
+        <field name="padding">8</field>
+        <field name="company_id" eval="False"/>
+    </record>
+</odoo>

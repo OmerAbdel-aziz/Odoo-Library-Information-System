@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="library_membership_plan_view_list" model="ir.ui.view">
+        <field name="name">library.membership.plan.list</field>
+        <field name="model">library.membership.plan</field>
+        <field name="arch" type="xml">
+            <list string="Membership Plans" multi_edit="1">
+                <field name="name"/>
+                <field name="duration"/>
+                <field name="membership_fee" widget="monetary"/>
+                <field name="maximum_books"/>
+                <field name="loan_period_days"/>
+                <field name="fine_per_day" widget="monetary" optional="show"/>
+                <field name="member_count" string="Members"/>
+                <field name="active" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="library_membership_plan_view_form" model="ir.ui.view">
+        <field name="name">library.membership.plan.form</field>
+        <field name="model">library.membership.plan</field>
+        <field name="arch" type="xml">
+            <form string="Membership Plan">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_members" type="object" class="oe_stat_button" icon="fa-users">
+                            <field name="member_count" widget="statinfo" string="Members"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Standard Plan"/></h1>
+                    </div>
+                    <group>
+                        <group string="Membership">
+                            <field name="active" invisible="1"/>
+                            <field name="duration" string="Duration (days)"/>
+                            <field name="membership_fee"/>
+                            <field name="maximum_books"/>
+                        </group>
+                        <group string="Lending Rules">
+                            <field name="loan_period_days"/>
+                            <field name="maximum_renewals"/>
+                            <field name="reservation_limit"/>
+                        </group>
+                    </group>
+                    <group string="Fines">
+                        <group>
+                            <field name="fine_per_day"/>
+                            <field name="maximum_fine"/>
+                            <field name="grace_period_days"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="library_membership_plan_view_search" model="ir.ui.view">
+        <field name="name">library.membership.plan.search</field>
+        <field name="model">library.membership.plan</field>
+        <field name="arch" type="xml">
+            <search string="Membership Plans">
+                <field name="name"/>
+                <filter name="active" string="Active" domain="[('active', '=', True)]"/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="library_membership_plan_action" model="ir.actions.act_window">
+        <field name="name">Membership Plans</field>
+        <field name="res_model">library.membership.plan</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create a membership plan</p>
+        </field>
+    </record>
+</odoo>

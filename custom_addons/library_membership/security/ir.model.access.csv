@@ -1,0 +1,7 @@
+id,name,model_id/id,group_id/id,perm_read,perm_write,perm_create,perm_unlink
+access_library_member_user,library.member.user,model_library_member,library_base.library_group_user,1,0,0,0
+access_library_member_branch_manager,library.member.branch.manager,model_library_member,library_base.library_group_branch_manager,1,1,1,0
+access_library_member_library_manager,library.member.library.manager,model_library_member,library_base.library_group_library_manager,1,1,1,1
+access_library_membership_plan_user,library.membership.plan.user,model_library_membership_plan,library_base.library_group_user,1,0,0,0
+access_library_membership_plan_branch_manager,library.membership.plan.branch.manager,model_library_membership_plan,library_base.library_group_branch_manager,1,1,1,1
+access_library_membership_plan_library_manager,library.membership.plan.library.manager,model_library_membership_plan,library_base.library_group_library_manager,1,1,1,1
