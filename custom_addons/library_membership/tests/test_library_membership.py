@@ -116,3 +116,16 @@ class TestLibraryMembership(TransactionCase):
     def test_manager_sees_all_members(self):
         members = self.Member.with_user(self.library_manager).search([])
         self.assertIn(self.member, members)
+
+    def test_blocked_status_requires_blocked_flag(self):
+        with self.assertRaises(ValidationError):
+            self.member.write({'status': 'blocked', 'blocked': False})
+
+    def test_blocked_flag_requires_blocked_status(self):
+        self.member.action_activate()
+        with self.assertRaises(ValidationError):
+            self.member.write({'blocked': True, 'status': 'active'})
+
+    def test_member_auto_generates_qr_code(self):
+        self.assertTrue(self.member.qr_code)
+        self.assertTrue(self.member.qr_code.startswith('LIBMEM:'))

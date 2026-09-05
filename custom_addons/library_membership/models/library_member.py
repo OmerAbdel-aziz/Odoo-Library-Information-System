@@ -99,7 +99,11 @@ class LibraryMember(models.Model):
                 vals['member_number'] = self.env['ir.sequence'].next_by_code('library.member')
             if not vals.get('barcode'):
                 vals['barcode'] = self.env['ir.sequence'].next_by_code('library.member.barcode')
-        return super().create(vals_list)
+        members = super().create(vals_list)
+        for member in members:
+            if not member.qr_code:
+                member.qr_code = f'LIBMEM:{member.id}'
+        return members
 
     def write(self, vals):
         res = super().write(vals)
@@ -144,3 +148,5 @@ class LibraryMember(models.Model):
         for member in self:
             if member.blocked and member.status not in ('blocked', 'cancelled'):
                 raise ValidationError('A blocked member must have blocked or cancelled status.')
+            if member.status == 'blocked' and not member.blocked:
+                raise ValidationError('A member with blocked status must have the blocked flag set.')

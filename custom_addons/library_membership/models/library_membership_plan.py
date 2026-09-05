@@ -1,4 +1,4 @@
-from odoo import fields, models
+from odoo import api, fields, models
 
 
 class LibraryMembershipPlan(models.Model):
@@ -21,9 +21,11 @@ class LibraryMembershipPlan(models.Model):
     member_ids = fields.One2many('library.member', 'membership_plan_id', string='Members')
     member_count = fields.Integer(compute='_compute_member_count')
 
+    @api.depends('member_ids')
     def _compute_member_count(self):
+        Member = self.env['library.member']
         for plan in self:
-            plan.member_count = len(plan.member_ids)
+            plan.member_count = Member.search_count([('membership_plan_id', '=', plan.id)])
 
     def action_view_members(self):
         self.ensure_one()
