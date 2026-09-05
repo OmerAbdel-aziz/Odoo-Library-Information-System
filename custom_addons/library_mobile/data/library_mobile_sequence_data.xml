@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo noupdate="1">
+    <record id="seq_library_mobile_unit" model="ir.sequence">
+        <field name="name">Library Mobile Unit</field>
+        <field name="code">library.mobile.unit</field>
+        <field name="prefix">MOBUNIT</field>
+        <field name="padding">4</field>
+        <field name="company_id" eval="False"/>
+    </record>
+    <record id="seq_library_mobile_route" model="ir.sequence">
+        <field name="name">Library Mobile Route</field>
+        <field name="code">library.mobile.route</field>
+        <field name="prefix">MOBRTE</field>
+        <field name="padding">4</field>
+        <field name="company_id" eval="False"/>
+    </record>
+    <record id="seq_library_mobile_trip" model="ir.sequence">
+        <field name="name">Library Mobile Trip</field>
+        <field name="code">library.mobile.trip</field>
+        <field name="prefix">MOBTRP</field>
+        <field name="padding">6</field>
+        <field name="company_id" eval="False"/>
+    </record>
+</odoo>

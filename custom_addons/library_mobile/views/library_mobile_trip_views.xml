@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="library_mobile_trip_view_list" model="ir.ui.view">
+        <field name="name">library.mobile.trip.list</field>
+        <field name="model">library.mobile.trip</field>
+        <field name="arch" type="xml">
+            <list string="Mobile Trips">
+                <field name="name"/>
+                <field name="route_id"/>
+                <field name="trip_date"/>
+                <field name="state" widget="badge" decoration-success="state == 'completed'" decoration-info="state in ('prepared', 'in_progress')" decoration-muted="state == 'cancelled'"/>
+                <field name="active" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="library_mobile_trip_view_form" model="ir.ui.view">
+        <field name="name">library.mobile.trip.form</field>
+        <field name="model">library.mobile.trip</field>
+        <field name="arch" type="xml">
+            <form string="Mobile Trip">
+                <header>
+                    <button name="action_prepare" type="object" string="Prepare" class="oe_highlight" invisible="state != 'draft'"/>
+                    <button name="action_start" type="object" string="Start Route" class="oe_highlight" invisible="state != 'prepared'"/>
+                    <button name="action_complete" type="object" string="Complete" class="oe_highlight" invisible="state != 'in_progress'"/>
+                    <button name="action_cancel" type="object" string="Cancel" invisible="state in ('completed', 'cancelled')"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,prepared,in_progress,completed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group string="Trip">
+                            <field name="active" invisible="1"/>
+                            <field name="route_id"/>
+                            <field name="unit_id"/>
+                            <field name="branch_id"/>
+                            <field name="trip_date"/>
+                            <field name="driver_id"/>
+                            <field name="company_id" invisible="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Carried Copies" name="copies">
+                            <field name="line_ids">
+                                <list string="Copies" editable="bottom">
+                                    <field name="book_copy_id"/>
+                                    <field name="book_id" readonly="1"/>
+                                    <field name="state" readonly="1"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Stop Visits" name="stops">
+                            <field name="stop_line_ids">
+                                <list string="Stops">
+                                    <field name="sequence"/>
+                                    <field name="stop_id"/>
+                                    <field name="visited"/>
+                                    <field name="visited_at" readonly="1"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notes" name="notes">
+                            <field name="notes" placeholder="Trip notes..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="library_mobile_trip_view_search" model="ir.ui.view">
+        <field name="name">library.mobile.trip.search</field>
+        <field name="model">library.mobile.trip</field>
+        <field name="arch" type="xml">
+            <search string="Mobile Trips">
+                <field name="name"/>
+                <field name="route_id"/>
+                <separator/>
+                <filter name="draft" string="Draft" domain="[('state', '=', 'draft')]"/>
+                <filter name="in_progress" string="In Progress" domain="[('state', '=', 'in_progress')]"/>
+                <filter name="completed" string="Completed" domain="[('state', '=', 'completed')]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="library_mobile_trip_action" model="ir.actions.act_window">
+        <field name="name">Mobile Trips</field>
+        <field name="res_model">library.mobile.trip</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Plan a new trip</p>
+            <p>Select a route, load copies, and visit stops.</p>
+        </field>
+    </record>
+
+    <menuitem id="library_mobile_menu" name="Bookmobile" parent="library_base.library_menu_operations" sequence="65" groups="library_base.library_group_librarian,library_base.library_group_circulation"/>
+    <menuitem id="library_mobile_trip_menu" name="Trips" parent="library_mobile_menu" action="library_mobile_trip_action" sequence="10"/>
+    <menuitem id="library_mobile_route_menu" name="Routes" parent="library_mobile_menu" action="library_mobile_route_action" sequence="20"/>
+    <menuitem id="library_mobile_unit_menu" name="Units" parent="library_mobile_menu" action="library_mobile_unit_action" sequence="30"/>
+</odoo>

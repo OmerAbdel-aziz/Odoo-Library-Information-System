@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="library_mobile_trip_company_rule" model="ir.rule">
+            <field name="name">Library Mobile Trip: multi-company</field>
+            <field name="model_id" ref="model_library_mobile_trip"/>
+            <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        </record>
+        <record id="library_mobile_unit_company_rule" model="ir.rule">
+            <field name="name">Library Mobile Unit: multi-company</field>
+            <field name="model_id" ref="model_library_mobile_unit"/>
+            <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        </record>
+        <record id="library_mobile_route_company_rule" model="ir.rule">
+            <field name="name">Library Mobile Route: multi-company</field>
+            <field name="model_id" ref="model_library_mobile_route"/>
+            <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        </record>
+        <record id="library_mobile_trip_line_company_rule" model="ir.rule">
+            <field name="name">Library Mobile Trip Line: multi-company</field>
+            <field name="model_id" ref="model_library_mobile_trip_line"/>
+            <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        </record>
+        <record id="library_mobile_trip_stop_company_rule" model="ir.rule">
+            <field name="name">Library Mobile Trip Stop: multi-company</field>
+            <field name="model_id" ref="model_library_mobile_trip_stop"/>
+            <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        </record>
+        <record id="library_mobile_stop_company_rule" model="ir.rule">
+            <field name="name">Library Mobile Stop: multi-company</field>
+            <field name="model_id" ref="model_library_mobile_stop"/>
+            <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        </record>
+
+        <record id="library_mobile_trip_user_rule" model="ir.rule">
+            <field name="name">Library Mobile Trip: assigned branches</field>
+            <field name="model_id" ref="model_library_mobile_trip"/>
+            <field name="domain_force">[('branch_id', 'in', user.allowed_branch_ids.ids)]</field>
+            <field name="groups" eval="[(4, ref('library_base.library_group_user'))]"/>
+        </record>
+        <record id="library_mobile_unit_user_rule" model="ir.rule">
+            <field name="name">Library Mobile Unit: assigned branches</field>
+            <field name="model_id" ref="model_library_mobile_unit"/>
+            <field name="domain_force">['|', ('home_branch_id', 'in', user.allowed_branch_ids.ids), ('home_branch_id.manager_id', '=', user.id)]</field>
+            <field name="groups" eval="[(4, ref('library_base.library_group_user'))]"/>
+        </record>
+        <record id="library_mobile_route_user_rule" model="ir.rule">
+            <field name="name">Library Mobile Route: assigned branches</field>
+            <field name="model_id" ref="model_library_mobile_route"/>
+            <field name="domain_force">[('branch_id', 'in', user.allowed_branch_ids.ids)]</field>
+            <field name="groups" eval="[(4, ref('library_base.library_group_user'))]"/>
+        </record>
+        <record id="library_mobile_trip_line_user_rule" model="ir.rule">
+            <field name="name">Library Mobile Trip Line: assigned branches</field>
+            <field name="model_id" ref="model_library_mobile_trip_line"/>
+            <field name="domain_force">[('trip_id.branch_id', 'in', user.allowed_branch_ids.ids)]</field>
+            <field name="groups" eval="[(4, ref('library_base.library_group_user'))]"/>
+        </record>
+        <record id="library_mobile_trip_stop_user_rule" model="ir.rule">
+            <field name="name">Library Mobile Trip Stop: assigned branches</field>
+            <field name="model_id" ref="model_library_mobile_trip_stop"/>
+            <field name="domain_force">[('trip_id.branch_id', 'in', user.allowed_branch_ids.ids)]</field>
+            <field name="groups" eval="[(4, ref('library_base.library_group_user'))]"/>
+        </record>
+        <record id="library_mobile_stop_user_rule" model="ir.rule">
+            <field name="name">Library Mobile Stop: assigned branches</field>
+            <field name="model_id" ref="model_library_mobile_stop"/>
+            <field name="domain_force">[('route_id.branch_id', 'in', user.allowed_branch_ids.ids)]</field>
+            <field name="groups" eval="[(4, ref('library_base.library_group_user'))]"/>
+        </record>
+
+        <record id="library_mobile_trip_branch_manager_rule" model="ir.rule">
+            <field name="name">Library Mobile Trip: branch manager sees all</field>
+            <field name="model_id" ref="model_library_mobile_trip"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('library_base.library_group_branch_manager'))]"/>
+        </record>
+        <record id="library_mobile_unit_branch_manager_rule" model="ir.rule">
+            <field name="name">Library Mobile Unit: branch manager sees all</field>
+            <field name="model_id" ref="model_library_mobile_unit"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('library_base.library_group_branch_manager'))]"/>
+        </record>
+        <record id="library_mobile_route_branch_manager_rule" model="ir.rule">
+            <field name="name">Library Mobile Route: branch manager sees all</field>
+            <field name="model_id" ref="model_library_mobile_route"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('library_base.library_group_branch_manager'))]"/>
+        </record>
+        <record id="library_mobile_trip_line_branch_manager_rule" model="ir.rule">
+            <field name="name">Library Mobile Trip Line: branch manager sees all</field>
+            <field name="model_id" ref="model_library_mobile_trip_line"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('library_base.library_group_branch_manager'))]"/>
+        </record>
+        <record id="library_mobile_trip_stop_branch_manager_rule" model="ir.rule">
+            <field name="name">Library Mobile Trip Stop: branch manager sees all</field>
+            <field name="model_id" ref="model_library_mobile_trip_stop"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('library_base.library_group_branch_manager'))]"/>
+        </record>
+        <record id="library_mobile_stop_branch_manager_rule" model="ir.rule">
+            <field name="name">Library Mobile Stop: branch manager sees all</field>
+            <field name="model_id" ref="model_library_mobile_stop"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('library_base.library_group_branch_manager'))]"/>
+        </record>
+    </data>
+</odoo>
