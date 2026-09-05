@@ -12,7 +12,7 @@ class LibraryEventRegistration(models.Model):
     name = fields.Char(required=True, readonly=True, copy=False, index=True)
     event_id = fields.Many2one(
         'library.event', string='Event', required=True,
-        ondelete='cascade', index=True, check_company=True,
+        ondelete='restrict', index=True, check_company=True,
     )
     member_id = fields.Many2one(
         'library.member', string='Member', required=True,
@@ -20,7 +20,7 @@ class LibraryEventRegistration(models.Model):
     )
     branch_id = fields.Many2one(related='event_id.branch_id', store=True, readonly=True)
     registration_date = fields.Date(default=fields.Date.context_today, required=True)
-    attended = fields.Boolean(default=False)
+    attended = fields.Boolean(default=False, readonly=True)
     state = fields.Selection(
         [
             ('registered', 'Registered'),
@@ -37,6 +37,8 @@ class LibraryEventRegistration(models.Model):
         for vals in vals_list:
             if not vals.get('name'):
                 vals['name'] = self.env['ir.sequence'].next_by_code('library.event.registration') or '/'
+            vals['state'] = 'registered'
+            vals['attended'] = False
         registrations = super().create(vals_list)
         for registration in registrations:
             registration._check_eligible()
@@ -48,7 +50,12 @@ class LibraryEventRegistration(models.Model):
         locked = {'event_id', 'member_id'}
         if locked & set(vals) and any(r.state != 'registered' for r in self):
             raise ValidationError('Only pending registrations can be reassigned.')
-        return super().write(vals)
+        res = super().write(vals)
+        if locked & set(vals):
+            for registration in self:
+                if registration.state == 'registered':
+                    registration._check_eligible()
+        return res
 
     def _check_eligible(self):
         self.ensure_one()
@@ -67,8 +74,13 @@ class LibraryEventRegistration(models.Model):
             ('id', '!=', self.id),
         ]):
             raise ValidationError('This member is already registered for "%s".' % event.title)
-        if event.capacity and event.registration_count > event.capacity:
-            raise ValidationError('Event "%s" is fully booked.' % event.title)
+        if event.capacity:
+            confirmed = self.search_count([
+                ('event_id', '=', event.id),
+                ('state', 'in', ('registered', 'attended')),
+            ])
+            if confirmed > event.capacity:
+                raise ValidationError('Event "%s" is fully booked.' % event.title)
 
     def action_attend(self):
         for registration in self:
@@ -78,8 +90,8 @@ class LibraryEventRegistration(models.Model):
 
     def action_cancel(self):
         for registration in self:
-            if registration.state == 'cancelled':
-                continue
             if registration.state == 'attended':
                 raise ValidationError('Attended registrations cannot be cancelled.')
+            if registration.state == 'cancelled':
+                raise ValidationError('Registration is already cancelled.')
             registration.with_context(event_action=True).write({'state': 'cancelled'})

@@ -6,6 +6,7 @@ class LibraryEvent(models.Model):
     _name = 'library.event'
     _description = 'Library Event'
     _order = 'start_datetime, id'
+    _rec_name = 'title'
     _rec_names_search = ['name', 'title']
     _check_company_auto = True
 
@@ -70,7 +71,7 @@ class LibraryEvent(models.Model):
         for event in self:
             confirmed = len(event.registration_ids.filtered(lambda r: r.state in ('registered', 'attended')))
             event.registration_count = confirmed
-            event.seats_left = max(0, event.capacity - confirmed) if event.capacity else -1
+            event.seats_left = event.capacity - confirmed if event.capacity else False
 
     def action_publish(self):
         for event in self:

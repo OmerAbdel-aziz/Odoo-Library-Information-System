@@ -28,7 +28,7 @@
                     <button name="action_start" type="object" string="Start" class="oe_highlight" invisible="state != 'published'"/>
                     <button name="action_finish" type="object" string="Finish" class="oe_highlight" invisible="state != 'ongoing'"/>
                     <button name="action_cancel" type="object" string="Cancel" invisible="state in ('done', 'cancelled')"/>
-                    <field name="state" widget="statusbar" statusbar_visible="draft,published,ongoing,done"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,published,ongoing,done,cancelled"/>
                 </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box">

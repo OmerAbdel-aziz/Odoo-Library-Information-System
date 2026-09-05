@@ -139,6 +139,36 @@ class TestLibraryEvents(TransactionCase):
         self.assertEqual(event.state, 'cancelled')
         self.assertEqual(reg.state, 'cancelled')
 
+    def test_create_state_forced_registered(self):
+        event = self._create_event()
+        event.action_publish()
+        reg = self.Registration.create({
+            'event_id': event.id, 'member_id': self.member.id, 'state': 'attended',
+        })
+        self.assertEqual(reg.state, 'registered')
+        self.assertFalse(reg.attended)
+
+    def test_reassignment_rechecked(self):
+        event = self._create_event()
+        event.action_publish()
+        reg = self.Registration.create({'event_id': event.id, 'member_id': self.member.id})
+        draft = self._create_event()
+        with self.assertRaises(ValidationError):
+            reg.write({'event_id': draft.id})
+
+    def test_event_delete_restricted(self):
+        from odoo.exceptions import UserError
+        event = self._create_event()
+        event.action_publish()
+        self.Registration.create({'event_id': event.id, 'member_id': self.member.id})
+        with self.assertRaises(Exception):
+            event.unlink()
+
+    def test_circulation_reads_event(self):
+        event = self._create_event()
+        events = self.Event.with_user(self.circ_user).search([])
+        self.assertIn(event, events)
+
     def test_user_can_read_registrations(self):
         event = self._create_event()
         event.action_publish()
