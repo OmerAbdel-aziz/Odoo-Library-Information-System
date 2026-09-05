@@ -14,6 +14,13 @@ build/
 *.swp
 *.swo
 *~
+*.pid
+
+# Virtual environment
+venv/
+
+# Odoo source (managed separately)
+odoo/
 
 # IDE
 .vscode/
@@ -24,3 +31,7 @@ build/
 # OS
 .DS_Store
 Thumbs.db
+
+# Temporary files
+/tmp/
+*.tmp
