@@ -63,6 +63,12 @@ class LibrarySubscription(models.Model):
             if subscription.end_date and subscription.start_date and subscription.end_date < subscription.start_date:
                 raise ValidationError('Subscription end date must be after start date.')
 
+    @api.constrains('cost')
+    def _check_cost(self):
+        for subscription in self:
+            if subscription.cost < 0:
+                raise ValidationError('Subscription cost cannot be negative.')
+
     @api.depends('issue_ids', 'issue_ids.expected_date', 'issue_ids.state', 'start_date', 'frequency')
     def _compute_expected_next_issue(self):
         for subscription in self:
@@ -73,14 +79,26 @@ class LibrarySubscription(models.Model):
             if pending:
                 subscription.expected_next_issue = min(pending.mapped('expected_date'))
                 continue
-            received = subscription.issue_ids.filtered(lambda i: i.state == 'received' and i.expected_date)
-            anchor = max(received.mapped('expected_date')) if received else subscription.start_date
+            dated = subscription.issue_ids.filtered(lambda i: i.expected_date)
+            anchor = max(dated.mapped('expected_date')) if dated else subscription.start_date
             subscription.expected_next_issue = anchor + self._FREQUENCY_DELTAS[subscription.frequency] if anchor else False
 
     @api.depends('issue_ids')
     def _compute_issue_count(self):
         for subscription in self:
             subscription.issue_count = len(subscription.issue_ids)
+
+    @staticmethod
+    def _label_for(date, frequency):
+        if frequency == 'daily':
+            return date.strftime('%Y-%m-%d')
+        if frequency == 'weekly':
+            return date.strftime('%Y-W%V')
+        if frequency == 'quarterly':
+            return '%d-Q%d' % (date.year, (date.month - 1) // 3 + 1)
+        if frequency == 'yearly':
+            return date.strftime('%Y')
+        return date.strftime('%Y-%m')
 
     def action_generate_issues(self, count=6):
         Issue = self.env['library.serial.issue']
@@ -90,7 +108,7 @@ class LibrarySubscription(models.Model):
             if to_create <= 0:
                 continue
             existing_labels = set(subscription.issue_ids.mapped('label'))
-            existing_dates = subscription.issue_ids.mapped('expected_date')
+            existing_dates = set(subscription.issue_ids.mapped('expected_date'))
             if existing_dates:
                 date = max(existing_dates) + self._FREQUENCY_DELTAS[subscription.frequency]
             else:
@@ -101,15 +119,17 @@ class LibrarySubscription(models.Model):
                 attempts += 1
                 if subscription.end_date and date > subscription.end_date:
                     break
-                label = date.strftime('%Y-%m')
-                if label not in existing_labels:
-                    Issue.create({
-                        'subscription_id': subscription.id,
-                        'label': label,
-                        'expected_date': date,
-                    })
-                    existing_labels.add(label)
-                    created += 1
+                if date not in existing_dates:
+                    label = self._label_for(date, subscription.frequency)
+                    if label not in existing_labels:
+                        Issue.create({
+                            'subscription_id': subscription.id,
+                            'label': label,
+                            'expected_date': date,
+                        })
+                        existing_labels.add(label)
+                        created += 1
+                    existing_dates.add(date)
                 date = date + self._FREQUENCY_DELTAS[subscription.frequency]
 
     def action_view_issues(self):

@@ -1,3 +1,5 @@
+from dateutil.relativedelta import relativedelta
+
 from odoo import Command
 from odoo.exceptions import ValidationError
 from odoo.tests import TransactionCase, new_test_user, tagged
@@ -14,7 +16,7 @@ class TestLibrarySerials(TransactionCase):
         cls.Branch = cls.env['library.branch']
 
         cls.branch = cls.Branch.create({'name': 'Main Library', 'code': 'LIB01'})
-        cls.supplier = cls.env['res.partner'].create({'name': 'Magazine Co'})
+        cls.supplier = cls.env['res.partner'].create({'name': 'Magazine Co', 'supplier_rank': 1})
 
         cls.librarian = new_test_user(
             cls.env,
@@ -104,6 +106,51 @@ class TestLibrarySerials(TransactionCase):
         sub.action_generate_issues(count=1)
         sub.issue_ids[0].action_receive()
         self.assertGreater(sub.expected_next_issue, first_expected)
+
+    def test_generate_daily_labels(self):
+        sub = self._create_subscription(frequency='daily', start_date='2026-01-01')
+        sub.action_generate_issues(count=3)
+        labels = sorted(sub.issue_ids.mapped('label'))
+        self.assertEqual(labels, ['2026-01-01', '2026-01-02', '2026-01-03'])
+
+    def test_missing_does_not_reset_next_issue(self):
+        sub = self._create_subscription(start_date='2026-01-01')
+        sub.action_generate_issues(count=3)
+        sub.issue_ids.action_mark_missing()
+        self.assertEqual(
+            sub.expected_next_issue,
+            max(sub.issue_ids.mapped('expected_date')) + relativedelta(months=1),
+        )
+
+    def test_direct_state_write_rejected(self):
+        sub = self._create_subscription(start_date='2026-01-01')
+        sub.action_generate_issues(count=1)
+        issue = sub.issue_ids[0]
+        with self.assertRaises(ValidationError):
+            issue.write({'state': 'received'})
+
+    def test_duplicate_date_rejected(self):
+        sub = self._create_subscription(start_date='2026-01-01')
+        sub.action_generate_issues(count=1)
+        with self.assertRaises(Exception):
+            self.Issue.create({
+                'subscription_id': sub.id,
+                'label': 'dup',
+                'expected_date': sub.issue_ids[0].expected_date,
+            })
+
+    def test_negative_cost_rejected(self):
+        with self.assertRaises(ValidationError):
+            self._create_subscription(cost=-5.0)
+
+    def test_out_of_range_issue_rejected(self):
+        sub = self._create_subscription(start_date='2026-01-01', end_date='2026-12-31')
+        with self.assertRaises(ValidationError):
+            self.Issue.create({
+                'subscription_id': sub.id,
+                'label': 'early',
+                'expected_date': '2025-12-01',
+            })
 
     def test_user_can_read_subscriptions(self):
         sub = self._create_subscription()
