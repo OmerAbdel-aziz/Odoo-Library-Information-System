@@ -34,7 +34,7 @@ class LibraryBranchMap(models.Model):
 
     @api.model
     def nearest_branch(self, latitude, longitude, limit=1):
-        branches = self.search([('latitude', '!=', 0.0), ('longitude', '!=', 0.0)])
+        branches = self.search(['|', ('latitude', '!=', 0.0), ('longitude', '!=', 0.0)])
         ranked = sorted(
             branches,
             key=lambda b: self._haversine_km(latitude, longitude, b.latitude, b.longitude),

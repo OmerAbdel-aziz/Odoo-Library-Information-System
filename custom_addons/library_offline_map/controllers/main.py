@@ -1,3 +1,5 @@
+import base64
+
 from odoo import http
 from odoo.http import request
 
@@ -16,14 +18,24 @@ class LibraryMapController(http.Controller):
             lng = float(longitude)
         except (TypeError, ValueError):
             return {'error': 'latitude and longitude are required.'}
+        if not (-90 <= lat <= 90 and -180 <= lng <= 180):
+            return {'error': 'Coordinates out of range.'}
+        try:
+            count = max(1, min(100, int(limit or 1)))
+        except (TypeError, ValueError):
+            return {'error': 'Invalid limit.'}
         Branch = request.env['library.branch']
-        return Branch.nearest_branch(lat, lng, limit=int(limit or 1))
+        return Branch.nearest_branch(lat, lng, limit=count)
 
     @http.route('/library_map/indoor', type='json', auth='user')
     def indoor(self, floor_id=None):
+        try:
+            fid = int(floor_id)
+        except (TypeError, ValueError):
+            return {'error': 'A valid floor_id is required.'}
         Floor = request.env['library.floor']
         Shelf = request.env['library.shelf']
-        floor = Floor.browse(int(floor_id)) if floor_id else Floor.search([], limit=1)
+        floor = Floor.browse(fid)
         if not floor.exists():
             return {'error': 'Floor not found.'}
         shelves = Shelf.search([('floor_id', '=', floor.id)])
@@ -45,8 +57,11 @@ class LibraryMapController(http.Controller):
         floor = request.env['library.floor'].browse(floor_id)
         if not floor.exists() or not floor.plan_svg:
             return request.not_found()
-        import base64
         return request.make_response(
             base64.b64decode(floor.plan_svg),
-            headers=[('Content-Type', 'image/svg+xml')],
+            headers=[
+                ('Content-Type', 'image/svg+xml'),
+                ('Content-Security-Policy', 'sandbox'),
+                ('Content-Disposition', 'inline; filename="floor-plan.svg"'),
+            ],
         )

@@ -1,2 +1,4 @@
 id,name,model_id/id,group_id/id,perm_read,perm_write,perm_create,perm_unlink
 access_library_map_settings_manager,library.map.settings.manager,model_library_map_settings,library_base.library_group_map_administrator,1,1,1,1
+access_library_floor_map_admin,library.floor.map.admin,library_base.model_library_floor,library_base.library_group_map_administrator,1,1,0,0
+access_library_shelf_map_admin,library.shelf.map.admin,library_base.model_library_shelf,library_base.library_group_map_administrator,1,1,0,0

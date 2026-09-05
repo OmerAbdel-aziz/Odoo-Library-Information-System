@@ -33,6 +33,10 @@ export class IndoorMap extends Component {
         });
     }
 
+    planUrl() {
+        return `/library_map/floor_plan/${this.state.floor.id}`;
+    }
+
     shelfClass(shelf) {
         let cls = "lib-shelf";
         if (!shelf.placed) {

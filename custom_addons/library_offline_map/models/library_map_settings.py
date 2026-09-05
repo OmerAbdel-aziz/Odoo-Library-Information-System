@@ -1,3 +1,6 @@
+import urllib.parse
+import urllib.request
+
 from odoo import api, fields, models
 
 
@@ -24,7 +27,7 @@ class LibraryMapSettings(models.Model):
 
     @api.model
     def _get_settings(self):
-        settings = self.search([], limit=1)
+        settings = self.search([('active', 'in', (True, False))], limit=1, order='id')
         if not settings:
             settings = self.create({})
         return settings
@@ -42,15 +45,19 @@ class LibraryMapSettings(models.Model):
         return self._ping_service(self.valhalla_url, 'Valhalla is not reachable. Deploy the local service first.')
 
     def _ping_service(self, url, fallback_message):
-        import urllib.request
         self.ensure_one()
         if not url:
-            return {'type': 'ir.actions.client', 'tag': 'display_notification',
-                    'params': {'title': 'Not configured', 'message': fallback_message, 'type': 'warning'}}
+            return self._notify('Not configured', fallback_message, 'warning')
+        parsed = urllib.parse.urlparse(url.replace('{z}', '0').replace('{x}', '0').replace('{y}', '0'))
+        if parsed.scheme not in ('http', 'https') or not parsed.hostname:
+            return self._notify('Invalid URL', 'Only http(s) service URLs are allowed.', 'warning')
         try:
-            urllib.request.urlopen(url, timeout=3)
-            return {'type': 'ir.actions.client', 'tag': 'display_notification',
-                    'params': {'title': 'Reachable', 'message': url, 'type': 'success'}}
+            urllib.request.urlopen(parsed.geturl(), timeout=3)
+            return self._notify('Reachable', url, 'success')
         except Exception:
-            return {'type': 'ir.actions.client', 'tag': 'display_notification',
-                    'params': {'title': 'Unreachable', 'message': fallback_message, 'type': 'warning'}}
+            return self._notify('Unreachable', fallback_message, 'warning')
+
+    @staticmethod
+    def _notify(title, message, level):
+        return {'type': 'ir.actions.client', 'tag': 'display_notification',
+                'params': {'title': title, 'message': message, 'type': level}}

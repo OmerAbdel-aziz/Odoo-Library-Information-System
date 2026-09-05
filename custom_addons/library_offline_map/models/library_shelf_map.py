@@ -1,5 +1,3 @@
-import base64
-
 from odoo import api, fields, models
 from odoo.exceptions import ValidationError
 
@@ -9,9 +7,9 @@ class LibraryShelfMap(models.Model):
 
     map_x = fields.Float(string='Map X (%)', digits=(5, 2), default=0.0)
     map_y = fields.Float(string='Map Y (%)', digits=(5, 2), default=0.0)
-    map_width = fields.Float(string='Map Width (%)', digits=(5, 2), default=10.0)
-    map_height = fields.Float(string='Map Height (%)', digits=(5, 2), default=5.0)
-    map_placed = fields.Boolean(compute='_compute_map_placed', store=True)
+    map_width = fields.Float(string='Map Width (%)', digits=(5, 2), default=0.0)
+    map_height = fields.Float(string='Map Height (%)', digits=(5, 2), default=0.0)
+    map_placed = fields.Boolean(compute='_compute_map_placed', store=True, readonly=True)
 
     @api.depends('map_x', 'map_y', 'map_width', 'map_height')
     def _compute_map_placed(self):

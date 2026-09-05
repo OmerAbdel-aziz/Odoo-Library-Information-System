@@ -9,6 +9,10 @@ Library Offline Map
 Indoor floor-plan viewer with shelf coordinates, find-book on map,
 branch pins API, offline nearest-branch lookup, and connection
 settings for tile/geocode/routing services.
+
+Note: the geographic MapLibre viewer and tile data are deployment
+artifacts and ship separately; this module provides the indoor
+viewer, data models, JSON APIs, and service settings.
 """,
     'depends': ['library_base', 'library_catalog'],
     'data': [
