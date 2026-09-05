@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo noupdate="1">
+    <record id="seq_library_event" model="ir.sequence">
+        <field name="name">Library Event</field>
+        <field name="code">library.event</field>
+        <field name="prefix">LIBEVT</field>
+        <field name="padding">6</field>
+        <field name="company_id" eval="False"/>
+    </record>
+    <record id="seq_library_event_registration" model="ir.sequence">
+        <field name="name">Library Event Registration</field>
+        <field name="code">library.event.registration</field>
+        <field name="prefix">EVTREG</field>
+        <field name="padding">6</field>
+        <field name="company_id" eval="False"/>
+    </record>
+</odoo>
