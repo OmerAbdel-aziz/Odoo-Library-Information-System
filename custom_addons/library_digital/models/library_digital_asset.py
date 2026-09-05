@@ -37,6 +37,13 @@ class LibraryDigitalAsset(models.Model):
         ],
         default='members', required=True,
     )
+    allowed_plan_ids = fields.Many2many(
+        'library.membership.plan',
+        'library_digital_asset_plan_rel',
+        'asset_id', 'plan_id',
+        string='Allowed Plans',
+        help='Membership plans allowed to check out restricted assets.',
+    )
     download_allowed = fields.Boolean(string='Download Allowed', default=True)
     license_limit = fields.Integer(
         default=0,

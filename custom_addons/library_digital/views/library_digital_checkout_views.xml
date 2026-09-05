@@ -83,7 +83,7 @@
         </field>
     </record>
 
-    <menuitem id="library_digital_menu" name="Digital" parent="library_base.library_menu_operations" sequence="50" groups="library_base.library_group_librarian"/>
+    <menuitem id="library_digital_menu" name="Digital" parent="library_base.library_menu_operations" sequence="50" groups="library_base.library_group_librarian,library_base.library_group_circulation"/>
     <menuitem id="library_digital_asset_menu" name="Assets" parent="library_digital_menu" action="library_digital_asset_action" sequence="10"/>
     <menuitem id="library_digital_checkout_menu" name="Checkouts" parent="library_digital_menu" action="library_digital_checkout_action" sequence="20"/>
 </odoo>

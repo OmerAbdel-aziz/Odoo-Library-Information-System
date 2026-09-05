@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo noupdate="1">
+    <record id="ir_cron_expire_digital_checkouts" model="ir.cron">
+        <field name="name">Expire overdue digital checkouts</field>
+        <field name="model_id" ref="model_library_digital_checkout"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_expire_checkouts()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="active">True</field>
+    </record>
+</odoo>

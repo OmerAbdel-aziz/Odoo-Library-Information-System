@@ -73,6 +73,43 @@ class TestLibraryDigital(TransactionCase):
         self.assertEqual(checkout.state, 'active')
         self.assertEqual(checkout.due_date, fields.Date.context_today(self) + timedelta(days=14))
 
+    def test_due_date_follows_plan(self):
+        self.plan.loan_period_days = 30
+        asset = self._create_asset()
+        checkout = self.Checkout.create({'member_id': self.member.id, 'asset_id': asset.id})
+        self.assertEqual(checkout.due_date, fields.Date.context_today(self) + timedelta(days=30))
+
+    def test_restricted_asset_plan_enforced(self):
+        other_plan = self.env['library.membership.plan'].create({
+            'name': 'Premium', 'duration': 365, 'maximum_books': 10, 'loan_period_days': 21,
+        })
+        asset = self._create_asset(access_mode='restricted')
+        asset.allowed_plan_ids = [Command.set(other_plan.ids)]
+        with self.assertRaises(ValidationError):
+            self.Checkout.create({'member_id': self.member.id, 'asset_id': asset.id})
+        asset.allowed_plan_ids = [Command.set(self.plan.ids)]
+        checkout = self.Checkout.create({'member_id': self.member.id, 'asset_id': asset.id})
+        self.assertEqual(checkout.state, 'active')
+
+    def test_reactivation_blocked(self):
+        asset = self._create_asset()
+        checkout = self.Checkout.create({'member_id': self.member.id, 'asset_id': asset.id})
+        checkout.action_return()
+        with self.assertRaises(ValidationError):
+            checkout.write({'state': 'active'})
+
+    def test_member_asset_change_blocked(self):
+        asset = self._create_asset()
+        checkout = self.Checkout.create({'member_id': self.member.id, 'asset_id': asset.id})
+        member2 = self._create_member('Reader Two')
+        with self.assertRaises(ValidationError):
+            checkout.write({'member_id': member2.id})
+
+    def test_circulation_reads_asset(self):
+        asset = self._create_asset()
+        assets = self.Asset.with_user(self.circ_user).search([])
+        self.assertIn(asset, assets)
+
     def test_duplicate_active_rejected(self):
         asset = self._create_asset()
         self.Checkout.create({'member_id': self.member.id, 'asset_id': asset.id})

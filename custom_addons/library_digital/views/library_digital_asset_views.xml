@@ -43,6 +43,7 @@
                         </group>
                         <group string="License">
                             <field name="access_mode"/>
+                            <field name="allowed_plan_ids" invisible="access_mode != 'restricted'"/>
                             <field name="download_allowed"/>
                             <field name="license_limit"/>
                             <field name="expiry_date"/>

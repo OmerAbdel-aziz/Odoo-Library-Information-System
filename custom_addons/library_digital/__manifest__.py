@@ -15,6 +15,7 @@ limits and expiry, plus member checkouts.
         'security/library_digital_security.xml',
         'security/ir.model.access.csv',
         'data/library_digital_sequence_data.xml',
+        'data/library_digital_cron_data.xml',
         'views/library_digital_asset_views.xml',
         'views/library_digital_checkout_views.xml',
     ],
