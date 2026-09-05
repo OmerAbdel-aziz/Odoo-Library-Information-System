@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo noupdate="1">
+    <record id="mail_template_notification" model="mail.template">
+        <field name="name">Library Notification</field>
+        <field name="model_id" ref="model_library_notification"/>
+        <field name="subject">{{ object.subject }}</field>
+        <field name="email_to">{{ object.member_id.partner_id.email }}</field>
+        <field name="body_html" type="html">
+            <div>
+                <p>{{ object.body }}</p>
+            </div>
+        </field>
+    </record>
+
+    <record id="ir_cron_generate_notifications" model="ir.cron">
+        <field name="name">Generate library notifications</field>
+        <field name="model_id" ref="model_library_notification"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_generate()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="active">True</field>
+    </record>
+
+    <record id="ir_cron_dispatch_notifications" model="ir.cron">
+        <field name="name">Dispatch pending library notifications</field>
+        <field name="model_id" ref="model_library_notification"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_dispatch_pending()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">hours</field>
+        <field name="active">True</field>
+    </record>
+</odoo>

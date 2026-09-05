@@ -6,12 +6,12 @@ from odoo.http import request
 
 class LibraryMapController(http.Controller):
 
-    @http.route('/library_map/branches', type='json', auth='user')
+    @http.route('/library_map/branches', type='jsonrpc', auth='user')
     def branch_pins(self):
         branches = request.env['library.branch'].search([])
         return [b._pin_data() for b in branches]
 
-    @http.route('/library_map/nearest', type='json', auth='user')
+    @http.route('/library_map/nearest', type='jsonrpc', auth='user')
     def nearest(self, latitude=None, longitude=None, limit=1):
         try:
             lat = float(latitude)
@@ -27,7 +27,7 @@ class LibraryMapController(http.Controller):
         Branch = request.env['library.branch']
         return Branch.nearest_branch(lat, lng, limit=count)
 
-    @http.route('/library_map/indoor', type='json', auth='user')
+    @http.route('/library_map/indoor', type='jsonrpc', auth='user')
     def indoor(self, floor_id=None):
         try:
             fid = int(floor_id)
