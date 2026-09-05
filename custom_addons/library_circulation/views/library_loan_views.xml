@@ -27,7 +27,6 @@
                     <button name="action_issue" type="object" string="Issue" class="oe_highlight" invisible="state != 'draft'"/>
                     <button name="action_return" type="object" string="Return All" class="oe_highlight" invisible="state != 'issued'"/>
                     <button name="action_cancel" type="object" string="Cancel" invisible="state in ('returned', 'cancelled')"/>
-                    <button name="action_set_draft" type="object" string="Set to Draft" invisible="state != 'cancelled'"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,issued,returned"/>
                 </header>
                 <sheet>

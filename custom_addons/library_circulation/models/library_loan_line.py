@@ -106,17 +106,19 @@ class LibraryLoanLine(models.Model):
             copy.action_available()
 
         if self.is_overdue and self.fine_amount <= 0:
-            plan = self.member_id.membership_plan_id
-            fine_per_day = plan.fine_per_day if plan else 1.0
-            self.fine_amount = self.days_overdue * fine_per_day
-            if self.fine_amount > 0:
-                self.env['library.fine'].create({
-                    'member_id': self.member_id.id,
-                    'loan_line_id': self.id,
-                    'fine_type': 'late_return',
-                    'amount': self.fine_amount,
-                    'due_date': fields.Date.context_today(self),
-                })
+            existing = self.env['library.fine'].search_count([('loan_line_id', '=', self.id)])
+            if not existing:
+                plan = self.member_id.membership_plan_id
+                fine_per_day = plan.fine_per_day if plan else 1.0
+                self.fine_amount = self.days_overdue * fine_per_day
+                if self.fine_amount > 0:
+                    self.env['library.fine'].create({
+                        'member_id': self.member_id.id,
+                        'loan_line_id': self.id,
+                        'fine_type': 'late_return',
+                        'amount': self.fine_amount,
+                        'due_date': fields.Date.context_today(self),
+                    })
 
         self.member_id.current_loans_count = max(0, self.member_id.current_loans_count - 1)
 

@@ -97,3 +97,5 @@ class LibraryFine(models.Model):
         for fine in self:
             if fine.state == 'cancelled':
                 fine.state = 'draft'
+                if fine.amount > 0:
+                    fine.member_id.outstanding_fines += fine.amount

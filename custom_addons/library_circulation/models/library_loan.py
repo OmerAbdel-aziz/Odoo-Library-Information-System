@@ -96,6 +96,8 @@ class LibraryLoan(models.Model):
 
             loan.loan_line_ids.write({'state': 'issued'})
             member.current_loans_count += len(loan.loan_line_ids)
+            due_datetimes = loan.loan_line_ids.mapped('due_datetime')
+            loan.due_date = max(due_datetimes).date() if due_datetimes else False
             loan.state = 'issued'
 
     def action_return(self):
@@ -122,11 +124,6 @@ class LibraryLoan(models.Model):
                     line.state = 'cancelled'
                 loan.member_id.current_loans_count -= len(issued_lines)
             loan.state = 'cancelled'
-
-    def action_set_draft(self):
-        for loan in self:
-            if loan.state == 'cancelled':
-                loan.state = 'draft'
 
     def action_view_lines(self):
         self.ensure_one()
