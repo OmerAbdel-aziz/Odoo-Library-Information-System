@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="library_loan_view_list" model="ir.ui.view">
+        <field name="name">library.loan.list</field>
+        <field name="model">library.loan</field>
+        <field name="arch" type="xml">
+            <list string="Loans" multi_edit="1">
+                <field name="name"/>
+                <field name="member_id"/>
+                <field name="branch_id" optional="show"/>
+                <field name="issue_date"/>
+                <field name="due_date"/>
+                <field name="return_date" optional="show"/>
+                <field name="line_count" string="Items"/>
+                <field name="state" widget="badge" decoration-success="state == 'issued'" decoration-info="state == 'draft'" decoration-muted="state == 'returned'" decoration-danger="state == 'cancelled'"/>
+                <field name="active" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="library_loan_view_form" model="ir.ui.view">
+        <field name="name">library.loan.form</field>
+        <field name="model">library.loan</field>
+        <field name="arch" type="xml">
+            <form string="Loan">
+                <header>
+                    <button name="action_issue" type="object" string="Issue" class="oe_highlight" invisible="state != 'draft'"/>
+                    <button name="action_return" type="object" string="Return All" class="oe_highlight" invisible="state != 'issued'"/>
+                    <button name="action_cancel" type="object" string="Cancel" invisible="state in ('returned', 'cancelled')"/>
+                    <button name="action_set_draft" type="object" string="Set to Draft" invisible="state != 'cancelled'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,issued,returned"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_lines" type="object" class="oe_stat_button" icon="fa-list">
+                            <field name="line_count" widget="statinfo" string="Items"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group string="Loan Details">
+                            <field name="active" invisible="1"/>
+                            <field name="member_id"/>
+                            <field name="branch_id"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                        <group string="Dates">
+                            <field name="issue_date"/>
+                            <field name="due_date"/>
+                            <field name="return_date"/>
+                        </group>
+                    </group>
+                    <group string="Staff">
+                        <group>
+                            <field name="issued_by"/>
+                            <field name="returned_by"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Loan Items" name="lines">
+                            <field name="loan_line_ids">
+                                <list string="Loan Items" editable="bottom">
+                                    <field name="book_copy_id"/>
+                                    <field name="book_id" readonly="1"/>
+                                    <field name="condition_on_issue"/>
+                                    <field name="condition_on_return"/>
+                                    <field name="due_datetime" readonly="1"/>
+                                    <field name="return_datetime" readonly="1"/>
+                                    <field name="renewal_count" readonly="1"/>
+                                    <field name="fine_amount" readonly="1"/>
+                                    <field name="state" readonly="1"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notes" name="notes">
+                            <field name="notes" placeholder="Internal notes..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="library_loan_view_search" model="ir.ui.view">
+        <field name="name">library.loan.search</field>
+        <field name="model">library.loan</field>
+        <field name="arch" type="xml">
+            <search string="Loans">
+                <field name="name"/>
+                <field name="member_id"/>
+                <separator/>
+                <filter name="draft" string="Draft" domain="[('state', '=', 'draft')]"/>
+                <filter name="issued" string="Issued" domain="[('state', '=', 'issued')]"/>
+                <filter name="returned" string="Returned" domain="[('state', '=', 'returned')]"/>
+                <filter name="cancelled" string="Cancelled" domain="[('state', '=', 'cancelled')]"/>
+                <separator/>
+                <filter name="my_loans" string="My Loans" domain="[('issued_by', '=', uid)]"/>
+                <group>
+                    <filter name="group_by_member" string="Member" context="{'group_by': 'member_id'}"/>
+                    <filter name="group_by_branch" string="Branch" context="{'group_by': 'branch_id'}"/>
+                    <filter name="group_by_state" string="Status" context="{'group_by': 'state'}"/>
+                    <filter name="group_by_issue_date" string="Issue Date" context="{'group_by': 'issue_date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="library_loan_action" model="ir.actions.act_window">
+        <field name="name">Loans</field>
+        <field name="res_model">library.loan</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_issued': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create a new loan</p>
+            <p>Issue books to library members by creating a loan record.</p>
+        </field>
+    </record>
+</odoo>

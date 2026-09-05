@@ -1,0 +1,10 @@
+id,name,model_id/id,group_id/id,perm_read,perm_write,perm_create,perm_unlink
+access_library_loan_user,library.loan.user,model_library_loan,library_base.library_group_circulation,1,1,1,0
+access_library_loan_branch_manager,library.loan.branch.manager,model_library_loan,library_base.library_group_branch_manager,1,1,1,0
+access_library_loan_library_manager,library.loan.library.manager,model_library_loan,library_base.library_group_library_manager,1,1,1,1
+access_library_loan_line_user,library.loan.line.user,model_library_loan_line,library_base.library_group_circulation,1,1,1,0
+access_library_loan_line_branch_manager,library.loan.line.branch.manager,model_library_loan_line,library_base.library_group_branch_manager,1,1,1,0
+access_library_loan_line_library_manager,library.loan.line.library.manager,model_library_loan_line,library_base.library_group_library_manager,1,1,1,1
+access_library_fine_user,library.fine.user,model_library_fine,library_base.library_group_circulation,1,0,0,0
+access_library_fine_branch_manager,library.fine.branch.manager,model_library_fine,library_base.library_group_branch_manager,1,1,1,0
+access_library_fine_library_manager,library.fine.library.manager,model_library_fine,library_base.library_group_library_manager,1,1,1,1

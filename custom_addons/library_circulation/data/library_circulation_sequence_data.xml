@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo noupdate="1">
+    <record id="seq_library_loan" model="ir.sequence">
+        <field name="name">Library Loan</field>
+        <field name="code">library.loan</field>
+        <field name="prefix">LOAN</field>
+        <field name="padding">6</field>
+        <field name="company_id" eval="False"/>
+    </record>
+    <record id="seq_library_fine" model="ir.sequence">
+        <field name="name">Library Fine</field>
+        <field name="code">library.fine</field>
+        <field name="prefix">FINE</field>
+        <field name="padding">6</field>
+        <field name="company_id" eval="False"/>
+    </record>
+</odoo>
