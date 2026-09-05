@@ -1,0 +1,7 @@
+id,name,model_id/id,group_id/id,perm_read,perm_write,perm_create,perm_unlink
+access_library_digital_asset_user,library.digital.asset.user,model_library_digital_asset,library_base.library_group_librarian,1,1,1,0
+access_library_digital_asset_branch_manager,library.digital.asset.branch.manager,model_library_digital_asset,library_base.library_group_branch_manager,1,1,1,0
+access_library_digital_asset_library_manager,library.digital.asset.library.manager,model_library_digital_asset,library_base.library_group_library_manager,1,1,1,1
+access_library_digital_checkout_user,library.digital.checkout.user,model_library_digital_checkout,library_base.library_group_circulation,1,1,1,0
+access_library_digital_checkout_branch_manager,library.digital.checkout.branch.manager,model_library_digital_checkout,library_base.library_group_branch_manager,1,1,1,0
+access_library_digital_checkout_library_manager,library.digital.checkout.library.manager,model_library_digital_checkout,library_base.library_group_library_manager,1,1,1,1

@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="library_digital_checkout_view_list" model="ir.ui.view">
+        <field name="name">library.digital.checkout.list</field>
+        <field name="model">library.digital.checkout</field>
+        <field name="arch" type="xml">
+            <list string="Digital Checkouts" multi_edit="1">
+                <field name="name"/>
+                <field name="member_id"/>
+                <field name="asset_id"/>
+                <field name="checkout_date"/>
+                <field name="due_date"/>
+                <field name="download_count"/>
+                <field name="state" widget="badge" decoration-success="state == 'active'" decoration-muted="state != 'active'"/>
+                <field name="active" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="library_digital_checkout_view_form" model="ir.ui.view">
+        <field name="name">library.digital.checkout.form</field>
+        <field name="model">library.digital.checkout</field>
+        <field name="arch" type="xml">
+            <form string="Digital Checkout">
+                <header>
+                    <button name="action_download" type="object" string="Download" class="oe_highlight" invisible="state != 'active'"/>
+                    <button name="action_return" type="object" string="Return" invisible="state != 'active'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="active,returned,expired" readonly="1"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group string="Checkout">
+                            <field name="active" invisible="1"/>
+                            <field name="member_id"/>
+                            <field name="asset_id"/>
+                            <field name="branch_id"/>
+                            <field name="company_id" invisible="1"/>
+                        </group>
+                        <group string="Tracking">
+                            <field name="checkout_date"/>
+                            <field name="due_date"/>
+                            <field name="return_date"/>
+                            <field name="download_count"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="library_digital_checkout_view_search" model="ir.ui.view">
+        <field name="name">library.digital.checkout.search</field>
+        <field name="model">library.digital.checkout</field>
+        <field name="arch" type="xml">
+            <search string="Digital Checkouts">
+                <field name="name"/>
+                <field name="member_id"/>
+                <field name="asset_id"/>
+                <separator/>
+                <filter name="active" string="Active" domain="[('state', '=', 'active')]"/>
+                <filter name="returned" string="Returned" domain="[('state', '=', 'returned')]"/>
+                <filter name="expired" string="Expired" domain="[('state', '=', 'expired')]"/>
+                <group>
+                    <filter name="group_by_member" string="Member" context="{'group_by': 'member_id'}"/>
+                    <filter name="group_by_asset" string="Asset" context="{'group_by': 'asset_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="library_digital_checkout_action" model="ir.actions.act_window">
+        <field name="name">Digital Checkouts</field>
+        <field name="res_model">library.digital.checkout</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_active': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No checkouts yet</p>
+            <p>Members check out digital assets within license limits.</p>
+        </field>
+    </record>
+
+    <menuitem id="library_digital_menu" name="Digital" parent="library_base.library_menu_operations" sequence="50" groups="library_base.library_group_librarian"/>
+    <menuitem id="library_digital_asset_menu" name="Assets" parent="library_digital_menu" action="library_digital_asset_action" sequence="10"/>
+    <menuitem id="library_digital_checkout_menu" name="Checkouts" parent="library_digital_menu" action="library_digital_checkout_action" sequence="20"/>
+</odoo>
