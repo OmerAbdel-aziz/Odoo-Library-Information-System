@@ -109,6 +109,20 @@ class TestLibraryCatalog(TransactionCase):
         })
         self.assertEqual(book.isbn_10, '0-13-235088-2')
 
+    def test_valid_isbn_10_with_x(self):
+        book = self.Book.create({
+            'name': 'Valid ISBN-10 with X',
+            'isbn_10': '0-8044-2957-X',
+        })
+        self.assertEqual(book.isbn_10, '0-8044-2957-X')
+
+    def test_invalid_isbn_10_check_character(self):
+        with self.assertRaises(ValidationError):
+            self.Book.create({
+                'name': 'Bad ISBN-10 Check',
+                'isbn_10': '013235088Z',
+            })
+
     def test_valid_isbn_13(self):
         book = self.Book.create({
             'name': 'Valid ISBN-13',
@@ -122,7 +136,7 @@ class TestLibraryCatalog(TransactionCase):
             'branch_id': self.branch.id,
         })
         self.assertTrue(copy.barcode)
-        self.assertIn('LIB01', copy.barcode)
+        self.assertTrue(copy.barcode.startswith('LIB01-BK-'))
 
     def test_copy_barcode_unique(self):
         self.Copy.create({
@@ -149,6 +163,17 @@ class TestLibraryCatalog(TransactionCase):
         self.assertEqual(copy.state, 'available')
         copy.action_lost()
         self.assertEqual(copy.state, 'lost')
+
+    def test_copy_invalid_state_transition_rejected(self):
+        copy = self.Copy.create({
+            'book_id': self.book.id,
+            'branch_id': self.branch.id,
+        })
+        copy.action_lost()
+        with self.assertRaises(ValidationError):
+            copy.action_available()
+        with self.assertRaises(ValidationError):
+            copy.action_on_loan()
 
     def test_copy_name_computation(self):
         copy = self.Copy.create({

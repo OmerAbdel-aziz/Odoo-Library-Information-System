@@ -51,7 +51,6 @@
                             <field name="isbn_13" placeholder="e.g. 9780132350884"/>
                             <field name="classification_id"/>
                             <field name="classification_code_id" domain="[('system_id', '=', classification_id)]" invisible="not classification_id"/>
-                            <field name="classification_code" placeholder="e.g. QA76.73"/>
                         </group>
                     </group>
                     <group string="People">
@@ -88,7 +87,7 @@
                 <field name="isbn_13"/>
                 <field name="author_ids"/>
                 <field name="publisher_id"/>
-                <field name="classification_code"/>
+                <field name="classification_code_id"/>
                 <filter name="active" string="Active" domain="[('active', '=', True)]"/>
                 <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
                 <separator/>

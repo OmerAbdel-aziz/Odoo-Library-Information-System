@@ -6,8 +6,7 @@ class LibraryBook(models.Model):
     _name = 'library.book'
     _description = 'Library Book'
     _order = 'name'
-    _rec_names_search = ['name', 'isbn_13', 'isbn_10', 'classification_code']
-    _check_company_auto = True
+    _rec_names_search = ['name', 'isbn_13', 'isbn_10', 'classification_code_id.code']
 
     name = fields.Char(required=True, translate=True, index=True)
     subtitle = fields.Char(translate=True)
@@ -40,7 +39,6 @@ class LibraryBook(models.Model):
     )
     classification_id = fields.Many2one('library.classification.system', string='Classification System', index=True)
     classification_code_id = fields.Many2one('library.classification.code', string='Classification Code', index=True)
-    classification_code = fields.Char(string='Classification Code (Text)')
     description = fields.Text(translate=True)
     page_count = fields.Integer()
     cover_image = fields.Image(string='Cover Image', max_width=1920, max_height=1920)
@@ -93,7 +91,7 @@ class LibraryBook(models.Model):
         for book in self:
             if book.isbn_10:
                 cleaned = book.isbn_10.replace('-', '').replace(' ', '')
-                if len(cleaned) != 10 or not cleaned[:-1].isdigit():
+                if len(cleaned) != 10 or not cleaned[:-1].isdigit() or cleaned[-1] not in '0123456789Xx':
                     raise ValidationError('Invalid ISBN-10 format.')
 
     @api.constrains('isbn_13')

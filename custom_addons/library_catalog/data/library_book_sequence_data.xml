@@ -3,7 +3,7 @@
     <record id="seq_library_book_copy" model="ir.sequence">
         <field name="name">Library Book Copy</field>
         <field name="code">library.book.copy</field>
-        <field name="prefix">COPY-</field>
+        <field name="prefix"></field>
         <field name="padding">6</field>
         <field name="company_id" eval="False"/>
     </record>
