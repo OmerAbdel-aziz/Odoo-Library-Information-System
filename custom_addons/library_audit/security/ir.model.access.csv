@@ -1,0 +1,4 @@
+id,name,model_id/id,group_id/id,perm_read,perm_write,perm_create,perm_unlink
+access_library_audit_rule_manager,library.audit.rule.manager,model_library_audit_rule,library_base.library_group_library_manager,1,1,1,1
+access_library_audit_log_manager,library.audit.log.manager,model_library_audit_log,library_base.library_group_library_manager,1,0,0,0
+access_library_audit_log_line_manager,library.audit.log.line.manager,model_library_audit_log_line,library_base.library_group_library_manager,1,0,0,0
